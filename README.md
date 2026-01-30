@@ -3,6 +3,7 @@
     <br/>
     <h3>disunday</h3>
     <p>Iron Man's Jarvis for coding agents, inside Discord</p>
+    <p><i>Inspired by <a href="https://github.com/remorses/kimaki">kimaki</a></i></p>
     <br/>
     <br/>
 </div>
