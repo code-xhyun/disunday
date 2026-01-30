@@ -3,7 +3,6 @@
     <br/>
     <h3>disunday</h3>
     <p>Iron Man's Jarvis for coding agents, inside Discord</p>
-    <p><i>Inspired by <a href="https://github.com/remorses/kimaki">kimaki</a></i></p>
     <br/>
     <br/>
 </div>
@@ -432,3 +431,9 @@ Or use these Discord commands to change settings per channel/session:
 - `/model` - Select a different AI model
 - `/agent` - Select a different agent (if you have multiple agents configured in your project)
 - `/login` - Authenticate with providers via OAuth or API key
+
+---
+
+## Credits
+
+Inspired by [kimaki](https://github.com/remorses/kimaki)
