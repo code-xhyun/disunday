@@ -1,0 +1,36 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "test": "NODE_ENV=test pnpm --filter discord run vitest",
+    "dev": "pnpm --filter disunday dev",
+    "agents.md": "agentsdotmd ./DISUNDAY_AGENTS.md core.md typescript.md pnpm.md sentry.md vitest.md gitchamber.md changelog.md docs-writing.md cac.md shadcn.md tailwind.md spiceflow.md vercel-ai-sdk.md playwright.md zod.md",
+    "disunday": "pnpm --filter disunday play",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vite-node": "^3.2.4",
+    "oxfmt": "^0.24.0",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@opencode-ai/sdk": "^1.1.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
+  "repository": "https://github.com/remorses/",
+  "author": "remorses <beats.by.morse@gmail.com>",
+  "license": "",
+  "dependencies": {
+    "@opencode-ai/sdk": "^1.1.3",
+    "string-dedent": "^3.0.2",
+    "tiny-jsonc": "^1.0.2"
+  }
+}

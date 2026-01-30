@@ -1,0 +1,1298 @@
+import { describe, test, expect } from 'vitest'
+import {
+  isError,
+  isOk,
+  tryFn,
+  tryAsync,
+  map,
+  mapError,
+  andThen,
+  unwrap,
+  unwrapOr,
+  match,
+  partition,
+  TaggedError,
+  matchError,
+  matchErrorPartial,
+  UnhandledError,
+  createTaggedError,
+  findCause,
+} from './index.js'
+
+// ============================================================================
+// Tagged Error Definitions
+// ============================================================================
+
+class NotFoundError extends TaggedError('NotFoundError')<{
+  id: string
+  message: string
+}>() {
+  constructor(args: { id: string }) {
+    super({ ...args, message: `Not found: ${args.id}` })
+  }
+}
+
+class ValidationError extends TaggedError('ValidationError')<{
+  field: string
+  message: string
+}>() {}
+
+class NetworkError extends TaggedError('NetworkError')<{
+  url: string
+  message: string
+}>() {}
+
+type User = { id: string; name: string }
+
+// Helper functions that return union types (realistic pattern)
+function getUser(found: boolean): NotFoundError | User {
+  if (!found) return new NotFoundError({ id: '123' })
+  return { id: '1', name: 'Alice' }
+}
+
+function parseNumber(s: string): ValidationError | number {
+  const n = parseInt(s, 10)
+  if (isNaN(n)) return new ValidationError({ field: 'input', message: 'Not a number' })
+  return n
+}
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+describe('instanceof Error / isOk', () => {
+  test('instanceof Error returns true for errors', () => {
+    const result = getUser(false)
+    expect(result instanceof Error).toBe(true)
+  })
+
+  test('isOk narrows to value type', () => {
+    const result = getUser(true)
+
+    if (isOk(result)) {
+      // TypeScript knows: result is User
+      expect(result.name).toBe('Alice')
+    }
+  })
+
+  test('early return pattern (like Go)', () => {
+    const user = getUser(true)
+    if (user instanceof Error) return
+
+    // TypeScript knows: user is User
+    expect(user.name).toBe('Alice')
+  })
+
+  test('instanceof Error narrows to error type for matchError', () => {
+    const result = getUser(false)
+
+    if (result instanceof Error) {
+      // TypeScript knows: result is NotFoundError
+      expect(result.id).toBe('123')
+    }
+  })
+})
+
+// ============================================================================
+// tryFn / tryAsync
+// ============================================================================
+
+describe('tryFn', () => {
+  test('returns value on success', () => {
+    const result = tryFn(() => JSON.parse('{"a":1}'))
+
+    if (isOk(result)) {
+      expect(result.a).toBe(1)
+    }
+  })
+
+  test('returns UnhandledError on exception', () => {
+    const result = tryFn(() => JSON.parse('invalid'))
+
+    expect(result instanceof Error).toBe(true)
+    if (result instanceof Error) {
+      expect(result).toBeInstanceOf(UnhandledError)
+    }
+  })
+
+  test('custom catch returns typed error', () => {
+    const result = tryFn({
+      try: () => JSON.parse('invalid'),
+      catch: () => new ValidationError({ field: 'json', message: 'Invalid JSON' }),
+    })
+
+    if (result instanceof ValidationError) {
+      // TypeScript knows: result is ValidationError
+      expect(result.field).toBe('json')
+    }
+  })
+})
+
+describe('tryAsync', () => {
+  test('returns value on success', async () => {
+    const result = await tryAsync(() => Promise.resolve(42))
+
+    if (isOk(result)) {
+      expect(result).toBe(42)
+    }
+  })
+
+  test('returns error on rejection', async () => {
+    const result = await tryAsync(() => Promise.reject(new Error('fail')))
+
+    expect(result instanceof Error).toBe(true)
+  })
+
+  test('custom catch with async function', async () => {
+    const result = await tryAsync({
+      try: () => Promise.reject(new Error('network')),
+      catch: () => new NetworkError({ url: '/api', message: 'Failed' }),
+    })
+
+    if (result instanceof Error) {
+      // TypeScript knows: result is NetworkError
+      expect(result.url).toBe('/api')
+    }
+  })
+})
+
+// ============================================================================
+// Transformations
+// ============================================================================
+
+describe('map', () => {
+  test('transforms value when ok', () => {
+    const user = getUser(true)
+    const result = map(user, (u) => u.name.toUpperCase())
+
+    expect(result).toBe('ALICE')
+  })
+
+  test('passes through error unchanged', () => {
+    const user = getUser(false)
+    const result = map(user, (u) => u.name.toUpperCase())
+
+    expect(result instanceof Error).toBe(true)
+  })
+})
+
+describe('mapError', () => {
+  test('transforms error type', () => {
+    const result = getUser(false)
+    const mapped = mapError(result, (e) => new NetworkError({ url: '/api', message: e.message }))
+
+    if (mapped instanceof Error) {
+      // TypeScript knows: mapped is NetworkError
+      expect(mapped.url).toBe('/api')
+    }
+  })
+})
+
+describe('andThen', () => {
+  test('chains errore-returning functions', () => {
+    const result = andThen(parseNumber('21'), (n) => n * 2)
+
+    expect(result).toBe(42)
+  })
+
+  test('short-circuits on error', () => {
+    const result = andThen(parseNumber('bad'), (n) => n * 2)
+
+    expect(result instanceof Error).toBe(true)
+  })
+
+  test('chains multiple errore functions', () => {
+    function divide(a: number, b: number): ValidationError | number {
+      if (b === 0) return new ValidationError({ field: 'divisor', message: 'Cannot divide by zero' })
+      return a / b
+    }
+
+    const result = andThen(parseNumber('20'), (n) => divide(n, 4))
+
+    expect(result).toBe(5)
+  })
+})
+
+// ============================================================================
+// Composition
+// ============================================================================
+
+describe('composing multiple operations', () => {
+  // Additional error types for composition tests
+  class DivisionError extends TaggedError('DivisionError')<{
+    message: string
+  }>() {}
+
+  function validatePositive(n: number): ValidationError | number {
+    if (n <= 0) return new ValidationError({ field: 'number', message: 'Must be positive' })
+    return n
+  }
+
+  function divide(a: number, b: number): DivisionError | number {
+    if (b === 0) return new DivisionError({ message: 'Cannot divide by zero' })
+    return a / b
+  }
+
+  test('compose with nested andThen calls', () => {
+    const result = andThen(
+      andThen(parseNumber('10'), validatePositive),
+      (n) => divide(100, n)
+    )
+
+    expect(result).toBe(10)
+  })
+
+  test('step-by-step composition with early returns', () => {
+    function calculate(input: string): ValidationError | DivisionError | number {
+      const parsed = parseNumber(input)
+      if (parsed instanceof Error) return parsed
+
+      const validated = validatePositive(parsed)
+      if (validated instanceof Error) return validated
+
+      return divide(100, validated)
+    }
+
+    expect(calculate('10')).toBe(10)
+    expect(calculate('bad') instanceof Error).toBe(true)
+    expect(calculate('-5') instanceof Error).toBe(true)
+    expect(calculate('0') instanceof Error).toBe(true)
+  })
+
+  test('error type is union of all possible errors', () => {
+    function calculate(input: string): ValidationError | DivisionError | number {
+      const parsed = parseNumber(input)
+      if (parsed instanceof Error) return parsed
+
+      // Skip validatePositive to allow 0 through to divide
+      return divide(100, parsed)
+    }
+
+    // TypeScript knows the error is ValidationError | DivisionError
+    const result = calculate('0')  // divide by zero
+    if (result instanceof Error) {
+      // Can use matchError with all possible error types
+      const message = matchError(result, {
+        ValidationError: (e) => `Validation: ${e.field}`,
+        DivisionError: (e) => `Division: ${e.message}`,
+        Error: (e) => `Unknown: ${e.message}`,
+      })
+      expect(message).toBe('Division: Cannot divide by zero')
+    }
+  })
+
+  test('mapError at the end to normalize errors', () => {
+    class AppError extends TaggedError('AppError')<{
+      source: string
+      message: string
+    }>() {}
+
+    function calculate(input: string): ValidationError | DivisionError | number {
+      const parsed = parseNumber(input)
+      if (parsed instanceof Error) return parsed
+      return divide(100, parsed)
+    }
+
+    const result = calculate('0')
+    const normalized = mapError(result, (e) => new AppError({ source: e._tag, message: e.message }))
+
+    if (normalized instanceof Error) {
+      expect(normalized._tag).toBe('AppError')
+      expect(normalized.source).toBe('DivisionError')
+    }
+  })
+
+  test('compose map and andThen', () => {
+    const result = map(
+      andThen(parseNumber('5'), (n) => divide(100, n)),
+      (n) => `Result: ${n}`
+    )
+
+    expect(result).toBe('Result: 20')
+  })
+})
+
+describe('async composition', () => {
+  async function fetchValue(id: string): Promise<NotFoundError | number> {
+    if (id === 'missing') return new NotFoundError({ id })
+    return 42
+  }
+
+  async function processValue(n: number): Promise<ValidationError | string> {
+    if (n < 0) return new ValidationError({ field: 'value', message: 'Negative' })
+    return `processed: ${n}`
+  }
+
+  test('async step-by-step composition', async () => {
+    async function pipeline(id: string): Promise<NotFoundError | ValidationError | string> {
+      const value = await fetchValue(id)
+      if (value instanceof Error) return value
+
+      const processed = await processValue(value)
+      if (processed instanceof Error) return processed
+
+      return processed
+    }
+
+    expect(await pipeline('123')).toBe('processed: 42')
+    expect((await pipeline('missing')) instanceof Error).toBe(true)
+  })
+
+  test('async with andThenAsync', async () => {
+    const { andThenAsync } = await import('./index.js')
+
+    const result = await andThenAsync(
+      await fetchValue('123'),
+      processValue
+    )
+
+    expect(result).toBe('processed: 42')
+  })
+})
+
+// ============================================================================
+// Extraction
+// ============================================================================
+
+describe('unwrap', () => {
+  test('returns value when ok', () => {
+    const result = parseNumber('42')
+
+    expect(unwrap(result)).toBe(42)
+  })
+
+  test('throws when error', () => {
+    const result = parseNumber('bad')
+
+    expect(() => unwrap(result)).toThrow()
+  })
+})
+
+describe('unwrapOr', () => {
+  test('returns value when ok', () => {
+    const result = parseNumber('42')
+
+    expect(unwrapOr(result, 0)).toBe(42)
+  })
+
+  test('returns fallback when error', () => {
+    const result = parseNumber('bad')
+
+    expect(unwrapOr(result, 0)).toBe(0)
+  })
+})
+
+describe('match', () => {
+  test('calls ok handler for value', () => {
+    const user = getUser(true)
+
+    const message = match(user, {
+      ok: (u) => `Hello, ${u.name}`,
+      err: (e) => `Error: ${e.message}`,
+    })
+
+    expect(message).toBe('Hello, Alice')
+  })
+
+  test('calls err handler for error', () => {
+    const user = getUser(false)
+
+    const message = match(user, {
+      ok: (u) => `Hello, ${u.name}`,
+      err: (e) => `Error: ${e.id}`,
+    })
+
+    expect(message).toBe('Error: 123')
+  })
+})
+
+describe('partition', () => {
+  test('splits array into values and errors', () => {
+    const results = [
+      parseNumber('1'),
+      parseNumber('bad'),
+      parseNumber('2'),
+      parseNumber('nope'),
+      parseNumber('3'),
+    ]
+
+    const [values, errors] = partition(results)
+
+    expect(values).toEqual([1, 2, 3])
+    expect(errors).toHaveLength(2)
+  })
+})
+
+// ============================================================================
+// Tagged Errors
+// ============================================================================
+
+describe('TaggedError', () => {
+  test('has _tag property', () => {
+    const err = new NotFoundError({ id: '123' })
+
+    expect(err._tag).toBe('NotFoundError')
+  })
+
+  test('static is() type guard', () => {
+    const err: Error = new NotFoundError({ id: '123' })
+
+    expect(NotFoundError.is(err)).toBe(true)
+    expect(ValidationError.is(err)).toBe(false)
+  })
+
+  test('TaggedError.is() for any tagged error', () => {
+    const err = new NotFoundError({ id: '123' })
+
+    expect(TaggedError.is(err)).toBe(true)
+    expect(TaggedError.is(new Error('plain'))).toBe(false)
+  })
+})
+
+describe('matchError', () => {
+  test('exhaustive pattern matching by _tag', () => {
+    function fetchData(): NotFoundError | ValidationError | string {
+      return new NotFoundError({ id: '123' })
+    }
+
+    const result = fetchData()
+
+    if (result instanceof Error) {
+      const message = matchError(result, {
+        NotFoundError: (e) => `Missing: ${e.id}`,
+        ValidationError: (e) => `Invalid: ${e.field}`,
+        Error: (e) => `Unknown: ${e.message}`,
+      })
+      expect(message).toBe('Missing: 123')
+    }
+  })
+
+  test('Error handler catches plain Error', () => {
+    function riskyOperation(): NotFoundError | Error | string {
+      return new Error('Something went wrong')
+    }
+
+    const result = riskyOperation()
+
+    if (result instanceof Error) {
+      const message = matchError(result, {
+        NotFoundError: (e) => `Missing: ${e.id}`,
+        Error: (e) => `Plain error: ${e.message}`,
+      })
+      expect(message).toBe('Plain error: Something went wrong')
+    }
+  })
+
+  test('Error handler with mixed tagged and plain errors', () => {
+    function getError(type: string): NotFoundError | ValidationError | Error {
+      if (type === 'notfound') return new NotFoundError({ id: '1' })
+      if (type === 'validation') return new ValidationError({ field: 'email', message: 'Invalid' })
+      return new Error('Unknown')
+    }
+
+    // Tagged error goes to its handler
+    const err1 = getError('notfound')
+    const msg1 = matchError(err1, {
+      NotFoundError: (e) => `NotFound: ${e.id}`,
+      ValidationError: (e) => `Validation: ${e.field}`,
+      Error: (e) => `Plain: ${e.message}`,
+    })
+    expect(msg1).toBe('NotFound: 1')
+
+    // Plain Error goes to Error handler
+    const err2 = getError('plain')
+    const msg2 = matchError(err2, {
+      NotFoundError: (e) => `NotFound: ${e.id}`,
+      ValidationError: (e) => `Validation: ${e.field}`,
+      Error: (e) => `Plain: ${e.message}`,
+    })
+    expect(msg2).toBe('Plain: Unknown')
+  })
+
+  test('matchErrorPartial with Error handler', () => {
+    function getError(): NotFoundError | Error {
+      return new Error('Oops')
+    }
+
+    const err = getError()
+    const message = matchErrorPartial(
+      err,
+      { Error: (e) => `Caught plain: ${e.message}` },
+      () => 'fallback'
+    )
+    expect(message).toBe('Caught plain: Oops')
+  })
+})
+
+// ============================================================================
+// Real-world Example
+// ============================================================================
+
+describe('real-world: fetch user flow', () => {
+  async function fetchUser(id: string): Promise<NotFoundError | NetworkError | User> {
+    if (id === 'network-fail') {
+      return new NetworkError({ url: '/users', message: 'Connection failed' })
+    }
+    if (id === 'not-found') {
+      return new NotFoundError({ id })
+    }
+    return { id, name: 'Alice' }
+  }
+
+  test('success case', async () => {
+    const user = await fetchUser('123')
+
+    if (user instanceof Error) return
+
+    // TypeScript knows: user is User
+    expect(user.name).toBe('Alice')
+  })
+
+  test('error handling with matchError', async () => {
+    const user = await fetchUser('not-found')
+
+    if (user instanceof Error) {
+      const message = matchError(user, {
+        NotFoundError: (e) => `User ${e.id} not found`,
+        NetworkError: (e) => `Network error: ${e.message}`,
+        Error: (e) => `Unknown: ${e.message}`,
+      })
+      expect(message).toBe('User not-found not found')
+    }
+  })
+
+  test('error handling with match', async () => {
+    const user = await fetchUser('network-fail')
+
+    const message = match(user, {
+      ok: (u) => `Got user: ${u.name}`,
+      err: (e) => `Failed: ${e.message}`,
+    })
+
+    expect(message).toBe('Failed: Connection failed')
+  })
+})
+
+// ============================================================================
+// Error | T | null/undefined - Result + Option combined naturally
+// ============================================================================
+
+describe('Error | T | null (Result + Option combined)', () => {
+  // This pattern combines Result and Option without nesting!
+  // In Rust you'd need Result<Option<T>, E> or Option<Result<T, E>>
+  // Here it's just: Error | T | null
+
+  function findUser(id: string): NotFoundError | User | null {
+    if (id === 'error') return new NotFoundError({ id })
+    if (id === 'missing') return null
+    return { id, name: 'Alice' }
+  }
+
+  test('success case - returns value', () => {
+    const user = findUser('123')
+
+    if (user instanceof Error) return
+    if (user === null) return
+
+    // TypeScript knows: user is User
+    expect(user.name).toBe('Alice')
+  })
+
+  test('null case - using ?? operator', () => {
+    const user = findUser('missing')
+
+    if (user instanceof Error) return
+
+    // Can use ?? naturally with null
+    const name = user?.name ?? 'Anonymous'
+    expect(name).toBe('Anonymous')
+  })
+
+  test('error case - still works with instanceof Error', () => {
+    const user = findUser('error')
+
+    if (user instanceof Error) {
+      expect(user.id).toBe('error')
+    }
+  })
+
+  test('optional chaining works naturally', () => {
+    const user = findUser('missing')
+
+    if (user instanceof Error) return
+
+    // ?. works because user is User | null
+    const nameLength = user?.name?.length
+    expect(nameLength).toBeUndefined()
+  })
+
+  test('nullish coalescing with method calls', () => {
+    function getConfig(): ValidationError | { timeout?: number } | null {
+      return { timeout: undefined }
+    }
+
+    const config = getConfig()
+
+    if (config instanceof Error) return
+
+    // Chain ?. and ?? naturally
+    const timeout = config?.timeout ?? 5000
+    expect(timeout).toBe(5000)
+  })
+})
+
+describe('Error | T | undefined', () => {
+  function lookup(key: string): NetworkError | string | undefined {
+    if (key === 'error') return new NetworkError({ url: '/lookup', message: 'Failed' })
+    if (key === 'missing') return undefined
+    return 'found-value'
+  }
+
+  test('success returns value', () => {
+    const value = lookup('exists')
+
+    if (value instanceof Error) return
+    if (value === undefined) return
+
+    expect(value).toBe('found-value')
+  })
+
+  test('undefined case with ?? fallback', () => {
+    const value = lookup('missing')
+
+    if (value instanceof Error) return
+
+    const result = value ?? 'default'
+    expect(result).toBe('default')
+  })
+
+  test('error case still caught by instanceof Error', () => {
+    const value = lookup('error')
+
+    expect(value instanceof Error).toBe(true)
+    if (value instanceof Error) {
+      expect(value.url).toBe('/lookup')
+    }
+  })
+})
+
+describe('complex: Error | T | null | undefined', () => {
+  // Even triple union works naturally!
+  function query(sql: string): ValidationError | { rows: string[] } | null | undefined {
+    if (sql === 'invalid') return new ValidationError({ field: 'sql', message: 'Bad query' })
+    if (sql === 'empty') return null
+    if (sql === 'no-table') return undefined
+    return { rows: ['a', 'b', 'c'] }
+  }
+
+  test('all branches narrowed correctly', () => {
+    const result = query('SELECT *')
+
+    if (result instanceof Error) {
+      // TypeScript: result is ValidationError
+      return result.field
+    }
+
+    if (result == null) {
+      // TypeScript: result is null | undefined
+      return 'no data'
+    }
+
+    // TypeScript: result is { rows: string[] }
+    expect(result.rows).toEqual(['a', 'b', 'c'])
+  })
+
+  test('combined with ?? for defaults', () => {
+    const result = query('empty')
+
+    if (result instanceof Error) return
+
+    // Works with null OR undefined
+    const rows = result?.rows ?? []
+    expect(rows).toEqual([])
+  })
+})
+
+// ============================================================================
+// Custom Base Class
+// ============================================================================
+
+describe('TaggedError with custom base class', () => {
+  class AppError extends Error {
+    statusCode: number = 500
+
+    report() {
+      return `[${this.statusCode}] ${this.message}`
+    }
+  }
+
+  class NotFoundAppError extends TaggedError('NotFoundAppError', AppError)<{
+    id: string
+    message: string
+  }>() {
+    statusCode = 404
+  }
+
+  class ServerAppError extends TaggedError('ServerAppError', AppError)<{
+    message: string
+  }>() {}
+
+  test('inherits base class properties', () => {
+    const err = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(err.statusCode).toBe(404)
+  })
+
+  test('inherits base class methods', () => {
+    const err = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(err.report()).toBe('[404] User not found')
+  })
+
+  test('still has _tag property', () => {
+    const err = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(err._tag).toBe('NotFoundAppError')
+  })
+
+  test('static is() still works', () => {
+    const err: Error = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(NotFoundAppError.is(err)).toBe(true)
+    expect(ServerAppError.is(err)).toBe(false)
+  })
+
+  test('TaggedError.is() still works', () => {
+    const err = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(TaggedError.is(err)).toBe(true)
+  })
+
+  test('instanceof base class', () => {
+    const err = new NotFoundAppError({ id: '123', message: 'User not found' })
+
+    expect(err instanceof AppError).toBe(true)
+    expect(err instanceof Error).toBe(true)
+  })
+
+  test('matchError works with custom base', () => {
+    function getError(): NotFoundAppError | ServerAppError {
+      return new NotFoundAppError({ id: '1', message: 'Not found' })
+    }
+
+    const err = getError()
+    const msg = matchError(err, {
+      NotFoundAppError: (e) => `404: ${e.id}`,
+      ServerAppError: (e) => `500: ${e.message}`,
+      Error: (e) => `Unknown: ${e.message}`,
+    })
+
+    expect(msg).toBe('404: 1')
+  })
+
+  test('default statusCode from base', () => {
+    const err = new ServerAppError({ message: 'Internal error' })
+
+    expect(err.statusCode).toBe(500)
+    expect(err.report()).toBe('[500] Internal error')
+  })
+})
+
+// ============================================================================
+// createTaggedError Factory API
+// ============================================================================
+
+// ============================================================================
+// Edge case: A | Error union is lossy when A = unknown
+// When A is `unknown`, the union `unknown | Error` collapses to just `unknown`
+// because `unknown` is the top type that already includes Error.
+// This means type narrowing breaks down completely.
+// ============================================================================
+
+describe('unknown value type (lossy union)', () => {
+  // This simulates a common pattern: wrapping JSON.parse or similar
+  // functions that return `unknown`
+  function parseJSON(input: string): Error | unknown {
+    try {
+      return JSON.parse(input)
+    } catch (e) {
+      return e instanceof Error ? e : new Error(String(e))
+    }
+  }
+
+  test('demonstrates the lossy union problem', () => {
+    const result = parseJSON('{"a": 1}')
+
+    // Runtime check works
+    expect(result instanceof Error).toBe(false)
+
+    // Go-style early return
+    // TypeScript simplifies `Error | unknown` to `unknown` before we even use it
+    if (result instanceof Error) {
+      // GOOD: instanceof Error DOES narrow to Error inside the block
+      const _msg = result.message // This works!
+      return
+    }
+
+    // THE BIG SURPRISE: After early return, result is still `unknown`!
+    // We handled the Error case, but TypeScript can't narrow `unknown` to
+    // "unknown minus Error" - it's still just `unknown`
+
+    // @ts-expect-error - result.a is an error because result is still unknown
+    const _a = result.a
+
+    // The only thing we can do is cast or use runtime checks
+    const value = result as { a: number }
+    expect(value.a).toBe(1)
+  })
+
+  test('instanceof Error DOES narrow inside the block', () => {
+    const result = parseJSON('invalid json')
+
+    // Runtime: this is an Error
+    expect(result instanceof Error).toBe(true)
+
+    // Go-style early return with instanceof Error
+    if (result instanceof Error) {
+      // GOOD NEWS: instanceof Error DOES narrow correctly inside the block!
+      // Even though the type was `unknown`, inside here it's `Error`
+      const _message = result.message // This works!
+
+      expect(result.message).toContain('JSON')
+    }
+  })
+
+  test('Extract and Exclude with unknown', () => {
+    // Error | unknown simplifies to just `unknown`
+    // Then Extract/Exclude operate on `unknown`:
+
+    // Extract<unknown, Error> = never (unknown doesn't extend Error)
+    // Exclude<unknown, Error> = unknown (unknown doesn't extend Error, so not excluded)
+
+    type TestExtract = Extract<Error | unknown, Error>
+    type TestExclude = Exclude<Error | unknown, Error>
+
+    // Extract gives `never` - can't assign anything
+    // @ts-expect-error - TestExtract is never, not unknown
+    const _extractTest: TestExtract = 'anything'
+
+    // Exclude gives `unknown` - can assign anything
+    const excludeTest: TestExclude = new Error() // compiles because TestExclude is unknown
+
+    expect(excludeTest instanceof Error).toBe(true)
+  })
+
+  test('workaround: use explicit types instead of unknown', () => {
+    // The solution is to never use `unknown` as the value type
+    // Instead, use a specific type or a branded type
+
+    interface ParsedJSON {
+      [key: string]: unknown
+    }
+
+    function parseJSONTyped(input: string): Error | ParsedJSON {
+      try {
+        return JSON.parse(input) as ParsedJSON
+      } catch (e) {
+        return e instanceof Error ? e : new Error(String(e))
+      }
+    }
+
+    const result = parseJSONTyped('{"a": 1}')
+
+    // Go-style early return
+    if (result instanceof Error) {
+      // Now TypeScript correctly narrows to Error
+      expect(result.message).toBeDefined()
+      return
+    }
+
+    // Now TypeScript correctly narrows to ParsedJSON
+    expect(result.a).toBe(1)
+  })
+})
+
+describe('createTaggedError factory', () => {
+  test('creates error with interpolated message', () => {
+    const NotFoundError = createTaggedError({
+      name: 'NotFoundError',
+      message: 'User $id not found in $database',
+    })
+
+
+    const err = new NotFoundError({ id: '123', database: 'users' })
+
+    expect(err.message).toBe('User 123 not found in users')
+    expect(err._tag).toBe('NotFoundError')
+    expect(err.name).toBe('NotFoundError')
+  })
+
+  test('assigns variables as properties', () => {
+    const NotFoundError = createTaggedError({
+      name: 'NotFoundError',
+      message: 'User $id not found in $database',
+    })
+
+    const err = new NotFoundError({ id: '123', database: 'users' })
+
+    expect(err.id).toBe('123')
+    expect(err.database).toBe('users')
+  })
+
+  test('static is() type guard works', () => {
+    const NotFoundError = createTaggedError({
+      name: 'NotFoundError',
+      message: 'User $id not found',
+    })
+
+    const err = new NotFoundError({ id: '123' })
+    const plainErr = new Error('plain')
+
+    expect(NotFoundError.is(err)).toBe(true)
+    expect(NotFoundError.is(plainErr)).toBe(false)
+  })
+
+  test('static tag property', () => {
+    const NotFoundError = createTaggedError({
+      name: 'NotFoundError',
+      message: 'User $id not found',
+    })
+
+    expect(NotFoundError.tag).toBe('NotFoundError')
+  })
+
+  test('error without variables requires no args', () => {
+    const EmptyError = createTaggedError({
+      name: 'EmptyError',
+      message: 'Something went wrong',
+    })
+
+    const err = new EmptyError()
+
+    expect(err.message).toBe('Something went wrong')
+    expect(err._tag).toBe('EmptyError')
+  })
+
+  test('supports cause for error chaining', () => {
+    const WrapperError = createTaggedError({
+      name: 'WrapperError',
+      message: 'Failed to process $item',
+    })
+
+    const originalError = new Error('original')
+    const err = new WrapperError({ item: 'data', cause: originalError })
+
+    expect(err.cause).toBe(originalError)
+    expect(err.message).toBe('Failed to process data')
+  })
+
+  test('cause stack is appended', () => {
+    const WrapperError = createTaggedError({
+      name: 'WrapperError',
+      message: 'Wrapper for $reason',
+    })
+
+    const cause = new Error('inner error')
+    const err = new WrapperError({ reason: 'testing', cause })
+
+    expect(err.stack).toContain('Caused by:')
+  })
+
+  test('toJSON includes all properties', () => {
+    const TestError = createTaggedError({
+      name: 'TestError',
+      message: 'Error with $code and $detail',
+    })
+
+    const err = new TestError({ code: 'E001', detail: 'something broke' })
+    const json = err.toJSON() as Record<string, unknown>
+
+    expect(json._tag).toBe('TestError')
+    expect(json.name).toBe('TestError')
+    expect(json.message).toBe('Error with E001 and something broke')
+    expect(json.code).toBe('E001')
+    expect(json.detail).toBe('something broke')
+  })
+
+  test('handles number values in interpolation', () => {
+    const StatusError = createTaggedError({
+      name: 'StatusError',
+      message: 'HTTP $status: $reason',
+    })
+
+    const err = new StatusError({ status: 404, reason: 'Not Found' })
+
+    expect(err.message).toBe('HTTP 404: Not Found')
+    expect(err.status).toBe(404)
+  })
+
+  test('handles variable at end of message', () => {
+    const EndError = createTaggedError({
+      name: 'EndError',
+      message: 'Missing $id',
+    })
+
+    const err = new EndError({ id: 'abc' })
+
+    expect(err.message).toBe('Missing abc')
+  })
+
+  test('handles variable followed by punctuation', () => {
+    const PunctError = createTaggedError({
+      name: 'PunctError',
+      message: 'Error: $code. Details: $info!',
+    })
+
+    const err = new PunctError({ code: 'E1', info: 'bad' })
+
+    expect(err.message).toBe('Error: E1. Details: bad!')
+  })
+
+  test('instanceof Error works', () => {
+    const TestError = createTaggedError({
+      name: 'TestError',
+      message: 'Test $val',
+    })
+
+    const err = new TestError({ val: '1' })
+
+    expect(err instanceof Error).toBe(true)
+  })
+
+  test('TaggedError.is() recognizes factory errors', () => {
+    const FactoryError = createTaggedError({
+      name: 'FactoryError',
+      message: 'Created via factory with $param',
+    })
+
+    const err = new FactoryError({ param: 'test' })
+
+    expect(TaggedError.is(err)).toBe(true)
+  })
+
+  test('works with matchError', () => {
+    const ErrorA = createTaggedError({
+      name: 'ErrorA',
+      message: 'Error A: $msg',
+    })
+    const ErrorB = createTaggedError({
+      name: 'ErrorB',
+      message: 'Error B: $msg',
+    })
+
+    function getError(type: string): InstanceType<typeof ErrorA> | InstanceType<typeof ErrorB> {
+      if (type === 'a') {
+        return new ErrorA({ msg: 'from A' })
+      }
+      return new ErrorB({ msg: 'from B' })
+    }
+
+    const err = getError('a')
+    const result = matchError(err, {
+      ErrorA: (e) => `Got A: ${e.msg}`,
+      ErrorB: (e) => `Got B: ${e.msg}`,
+      Error: (e) => `Unknown: ${e.message}`,
+    })
+
+    expect(result).toBe('Got A: from A')
+  })
+
+  test('preserves underscored variable names', () => {
+    const TestError = createTaggedError({
+      name: 'TestError',
+      message: 'Error with $user_id and $request_path',
+    })
+
+    const err = new TestError({ user_id: '123', request_path: '/api/test' })
+
+    expect(err.message).toBe('Error with 123 and /api/test')
+    expect(err.user_id).toBe('123')
+    expect(err.request_path).toBe('/api/test')
+  })
+
+  test('custom base class with extends option', () => {
+    class AppError extends Error {
+      statusCode = 500
+
+      report() {
+        return `[${this.statusCode}] ${this.message}`
+      }
+    }
+
+    const NotFoundError = createTaggedError({
+      name: 'NotFoundError',
+      message: 'Resource $id not found',
+      extends: AppError,
+    })
+
+    const err = new NotFoundError({ id: '123' })
+
+    expect(err.message).toBe('Resource 123 not found')
+    expect(err._tag).toBe('NotFoundError')
+    expect(err.statusCode).toBe(500)
+    expect(err.report()).toBe('[500] Resource 123 not found')
+    expect(err instanceof AppError).toBe(true)
+    expect(err instanceof Error).toBe(true)
+  })
+
+  test('custom base class with overridden properties', () => {
+    class HttpError extends Error {
+      statusCode = 500
+    }
+
+    // Create a factory error and then subclass it to override properties
+    const BaseNotFound = createTaggedError({
+      name: 'NotFoundError',
+      message: 'Not found: $resource',
+      extends: HttpError,
+    })
+
+    const err = new BaseNotFound({ resource: 'user' })
+
+    expect(err.statusCode).toBe(500)
+    expect(err.message).toBe('Not found: user')
+  })
+
+  test('custom base class static is() works', () => {
+    class CustomError extends Error {
+      custom = true
+    }
+
+    const TestError = createTaggedError({
+      name: 'TestError',
+      message: 'Test $val',
+      extends: CustomError,
+    })
+
+    const err = new TestError({ val: 'x' })
+    const plainErr = new Error('plain')
+    const customErr = new CustomError('custom')
+
+    expect(TestError.is(err)).toBe(true)
+    expect(TestError.is(plainErr)).toBe(false)
+    expect(TestError.is(customErr)).toBe(false)
+  })
+})
+
+describe('findCause', () => {
+  class RootError extends TaggedError('RootError')<{ id: string; message: string }>() {}
+  class MiddleError extends TaggedError('MiddleError')<{ step: string; message: string; cause: Error }>() {}
+  class TopError extends TaggedError('TopError')<{ message: string; cause: Error }>() {}
+  class UnrelatedError extends TaggedError('UnrelatedError')<{ message: string }>() {}
+
+  const root = new RootError({ id: '123', message: 'not found' })
+  const middle = new MiddleError({ step: 'fetch', message: 'fetch failed', cause: root })
+  const top = new TopError({ message: 'service error', cause: middle })
+
+  test('standalone findCause finds self', () => {
+    const found = findCause(root, RootError)
+    expect(found).toBe(root)
+    expect(found?.id).toBe('123')
+  })
+
+  test('standalone findCause finds direct cause', () => {
+    const found = findCause(middle, RootError)
+    expect(found).toBe(root)
+    expect(found?.id).toBe('123')
+  })
+
+  test('standalone findCause finds deep ancestor (A -> B -> C)', () => {
+    const found = findCause(top, RootError)
+    expect(found).toBe(root)
+    expect(found?.id).toBe('123')
+  })
+
+  test('standalone findCause returns undefined when not found', () => {
+    const found = findCause(top, UnrelatedError)
+    expect(found).toBeUndefined()
+  })
+
+  test('standalone findCause works on plain Error', () => {
+    const inner = new Error('inner')
+    const outer = new Error('outer', { cause: inner })
+    expect(findCause(outer, Error)).toBe(outer)
+  })
+
+  test('instance .findCause() finds self', () => {
+    const found = root.findCause(RootError)
+    expect(found).toBe(root)
+  })
+
+  test('instance .findCause() finds direct cause', () => {
+    const found = middle.findCause(RootError)
+    expect(found).toBe(root)
+    expect(found?.id).toBe('123')
+  })
+
+  test('instance .findCause() finds deep ancestor', () => {
+    const found = top.findCause(RootError)
+    expect(found).toBe(root)
+  })
+
+  test('instance .findCause() finds middle ancestor', () => {
+    const found = top.findCause(MiddleError)
+    expect(found).toBe(middle)
+    expect(found?.step).toBe('fetch')
+  })
+
+  test('instance .findCause() returns undefined when not found', () => {
+    expect(top.findCause(UnrelatedError)).toBeUndefined()
+  })
+
+  test('works with createTaggedError errors', () => {
+    class InnerError extends createTaggedError({
+      name: 'InnerError',
+      message: 'inner $code',
+    }) {}
+    class OuterError extends createTaggedError({
+      name: 'OuterError',
+      message: 'outer failed',
+    }) {}
+
+    const inner = new InnerError({ code: '404' })
+    const outer = new OuterError({ cause: inner })
+
+    // standalone
+    const found = findCause(outer, InnerError)
+    expect(found).toBeInstanceOf(InnerError)
+    expect(found?.code).toBe('404')
+
+    // instance method
+    const found2 = outer.findCause(InnerError)
+    expect(found2).toBeInstanceOf(InnerError)
+    expect(found2?.code).toBe('404')
+  })
+
+  test('works with custom base class', () => {
+    class AppError extends Error {
+      statusCode = 500
+    }
+
+    class DbError extends TaggedError('DbError', AppError)<{ message: string }>() {
+      statusCode = 503
+    }
+    class ApiError extends TaggedError('ApiError', AppError)<{ message: string; cause: Error }>() {
+      statusCode = 502
+    }
+
+    const db = new DbError({ message: 'connection lost' })
+    const api = new ApiError({ message: 'upstream failed', cause: db })
+
+    const found = api.findCause(DbError)
+    expect(found).toBe(db)
+    expect(found?.statusCode).toBe(503)
+
+    // Also findable via base class
+    const foundBase = findCause(api, AppError)
+    expect(foundBase).toBe(api) // self matches first
+  })
+
+  test('handles circular cause gracefully', () => {
+    const a = new Error('a')
+    const b = new Error('b', { cause: a })
+    // Force circular reference
+    ;(a as any).cause = b
+    // Should not infinite loop, should return undefined for unrelated class
+    expect(findCause(b, UnrelatedError)).toBeUndefined()
+  })
+})

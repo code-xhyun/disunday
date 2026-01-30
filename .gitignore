@@ -1,0 +1,17 @@
+node_modules
+dist
+esm
+.DS_Store
+*.tsbuildinfo
+.ultra.cache.json
+coverage
+useraudio
+.env
+*.db
+*.wav
+discord-audio-logs
+tmp
+
+# opensrc - source code for packages
+opensrc/
+__snapshots__
