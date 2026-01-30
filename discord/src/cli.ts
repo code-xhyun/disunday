@@ -605,6 +605,38 @@ async function registerCommands({
           })
       })
       .toJSON(),
+    new SlashCommandBuilder()
+      .setName('status')
+      .setDescription('Check bot and session status')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('help')
+      .setDescription('Show available commands')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('ping')
+      .setDescription('Check connection latency')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('context')
+      .setDescription('Show context window usage for current session')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('cost')
+      .setDescription('Show estimated API cost for current session')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('diff')
+      .setDescription('Show recent file changes in project')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('export')
+      .setDescription('Export session to markdown file')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('files')
+      .setDescription('List project files')
+      .toJSON(),
   ]
 
   // Add user-defined commands with -cmd suffix

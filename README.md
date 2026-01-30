@@ -334,6 +334,14 @@ Just send a message in any channel linked to a project. Disunday handles the res
 | `/run-config`                | Configure /run notification settings                                       |
 | `/verbosity <level>`         | Set output verbosity (tools-and-text, text-and-essential-tools, text-only) |
 | `/restart-opencode-server`   | Restart the OpenCode server for this channel                               |
+| `/status`                    | Check bot and session status                                               |
+| `/help`                      | Show available commands                                                    |
+| `/ping`                      | Check connection latency                                                   |
+| `/context`                   | Show context window usage for current session                              |
+| `/cost`                      | Show estimated API cost for current session                                |
+| `/diff`                      | Show recent file changes in project                                        |
+| `/export`                    | Export session to markdown file                                            |
+| `/files`                     | List project files                                                         |
 
 ### CLI Commands
 

@@ -57,6 +57,14 @@ import { handleVerbosityCommand } from './commands/verbosity.js'
 import { handleRestartOpencodeServerCommand } from './commands/restart-opencode-server.js'
 import { handleRunCommand, handleRunAutocomplete } from './commands/run.js'
 import { handleRunConfigCommand } from './commands/run-config.js'
+import { handleStatusCommand } from './commands/status.js'
+import { handleHelpCommand } from './commands/help.js'
+import { handlePingCommand } from './commands/ping.js'
+import { handleContextCommand } from './commands/context.js'
+import { handleCostCommand } from './commands/cost.js'
+import { handleDiffCommand } from './commands/diff.js'
+import { handleExportCommand } from './commands/export.js'
+import { handleFilesCommand } from './commands/files.js'
 import { createLogger, LogPrefix } from './logger.js'
 
 const interactionLogger = createLogger(LogPrefix.INTERACTION)
@@ -226,6 +234,38 @@ export function registerInteractionHandler({
 
             case 'run-config':
               await handleRunConfigCommand({ command: interaction, appId })
+              return
+
+            case 'status':
+              await handleStatusCommand({ command: interaction, appId })
+              return
+
+            case 'help':
+              await handleHelpCommand({ command: interaction, appId })
+              return
+
+            case 'ping':
+              await handlePingCommand({ command: interaction, appId })
+              return
+
+            case 'context':
+              await handleContextCommand({ command: interaction, appId })
+              return
+
+            case 'cost':
+              await handleCostCommand({ command: interaction, appId })
+              return
+
+            case 'diff':
+              await handleDiffCommand({ command: interaction, appId })
+              return
+
+            case 'export':
+              await handleExportCommand({ command: interaction, appId })
+              return
+
+            case 'files':
+              await handleFilesCommand({ command: interaction, appId })
               return
           }
 
