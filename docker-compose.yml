@@ -1,0 +1,12 @@
+services:
+  disunday:
+    build: .
+    container_name: disunday
+    restart: unless-stopped
+    volumes:
+      - ~/.disunday:/root/.disunday
+      - ~/projects:/projects
+    environment:
+      - NODE_ENV=production
+    stdin_open: true
+    tty: true

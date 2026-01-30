@@ -96,6 +96,49 @@ journalctl --user -u disunday -f   # Logs
 ./scripts/uninstall-service.sh     # Uninstall
 ```
 
+## Docker
+
+Run disunday in a container for 24/7 server deployment:
+
+```bash
+# Build and run
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+### Volume Mounts
+
+| Path          | Description               |
+| ------------- | ------------------------- |
+| `~/.disunday` | Bot credentials, database |
+| `~/projects`  | Your project directories  |
+
+Edit `docker-compose.yml` to change mounted directories:
+
+```yaml
+volumes:
+  - ~/.disunday:/root/.disunday
+  - ~/my-projects:/projects # Change this
+```
+
+### Manual Docker Run
+
+```bash
+docker build -t disunday .
+
+docker run -d \
+  --name disunday \
+  --restart unless-stopped \
+  -v ~/.disunday:/root/.disunday \
+  -v ~/projects:/projects \
+  disunday
+```
+
 ## Architecture: One Bot Per Machine
 
 **Each Discord bot you create is tied to one machine.** This is by design.
