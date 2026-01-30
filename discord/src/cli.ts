@@ -527,6 +527,23 @@ async function registerCommands({
       })
       .toJSON(),
     new SlashCommandBuilder()
+      .setName('theme')
+      .setDescription('Set message formatting theme for this channel')
+      .addStringOption((option) => {
+        option
+          .setName('style')
+          .setDescription('Theme style')
+          .setRequired(true)
+          .addChoices(
+            { name: 'default', value: 'default' },
+            { name: 'minimal', value: 'minimal' },
+            { name: 'detailed', value: 'detailed' },
+            { name: 'plain', value: 'plain' },
+          )
+        return option
+      })
+      .toJSON(),
+    new SlashCommandBuilder()
       .setName('restart-opencode-server')
       .setDescription(
         'Restart the opencode server for this channel only (fixes state/auth/plugins)',
@@ -636,6 +653,32 @@ async function registerCommands({
     new SlashCommandBuilder()
       .setName('files')
       .setDescription('List project files')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('settings')
+      .setDescription('Configure bot settings')
+      .addSubcommand((sub) => {
+        return sub
+          .setName('hub-channel')
+          .setDescription('Set the central notification channel for session completions')
+          .addChannelOption((opt) => {
+            return opt
+              .setName('channel')
+              .setDescription('The channel to receive notifications')
+              .setRequired(false)
+          })
+          .addBooleanOption((opt) => {
+            return opt
+              .setName('clear')
+              .setDescription('Clear the hub channel setting')
+              .setRequired(false)
+          })
+      })
+      .addSubcommand((sub) => {
+        return sub
+          .setName('view')
+          .setDescription('View current bot settings')
+      })
       .toJSON(),
   ]
 

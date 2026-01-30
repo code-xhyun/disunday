@@ -54,6 +54,8 @@ import {
 import { handleUndoCommand, handleRedoCommand } from './commands/undo-redo.js'
 import { handleUserCommand } from './commands/user-command.js'
 import { handleVerbosityCommand } from './commands/verbosity.js'
+import { handleThemeCommand } from './commands/theme.js'
+import { handleSettingsCommand } from './commands/settings.js'
 import { handleRestartOpencodeServerCommand } from './commands/restart-opencode-server.js'
 import { handleRunCommand, handleRunAutocomplete } from './commands/run.js'
 import { handleRunConfigCommand } from './commands/run-config.js'
@@ -221,6 +223,10 @@ export function registerInteractionHandler({
               await handleVerbosityCommand({ command: interaction, appId })
               return
 
+            case 'theme':
+              await handleThemeCommand({ command: interaction, appId })
+              return
+
             case 'restart-opencode-server':
               await handleRestartOpencodeServerCommand({
                 command: interaction,
@@ -266,6 +272,10 @@ export function registerInteractionHandler({
 
             case 'files':
               await handleFilesCommand({ command: interaction, appId })
+              return
+
+            case 'settings':
+              await handleSettingsCommand({ command: interaction, appId })
               return
           }
 

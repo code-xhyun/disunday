@@ -333,6 +333,9 @@ Just send a message in any channel linked to a project. Disunday handles the res
 | `/run <command>`             | Execute a terminal command                                                 |
 | `/run-config`                | Configure /run notification settings                                       |
 | `/verbosity <level>`         | Set output verbosity (tools-and-text, text-and-essential-tools, text-only) |
+| `/theme <style>`             | Set message formatting theme (default, minimal, detailed, plain)           |
+| `/settings hub-channel`      | Set central notification channel for session completions                   |
+| `/settings view`             | View current bot settings                                                  |
 | `/restart-opencode-server`   | Restart the OpenCode server for this channel                               |
 | `/status`                    | Check bot and session status                                               |
 | `/help`                      | Show available commands                                                    |

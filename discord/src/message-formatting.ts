@@ -397,14 +397,79 @@ export function formatTodoList(part: Part): string {
   return `${num} **${escapeInlineMarkdown(content)}**`
 }
 
-export function formatPart(part: Part, prefix?: string): string {
+export type ThemeType = 'default' | 'minimal' | 'detailed' | 'plain'
+
+type ThemeConfig = {
+  textBullet: string
+  fileBullet: string
+  toolBullet: string
+  editBullet: string
+  errorBullet: string
+  thinkingBullet: string
+  agentBullet: string
+  showEmoji: boolean
+  showThinking: boolean
+}
+
+const themes: Record<ThemeType, ThemeConfig> = {
+  default: {
+    textBullet: '⬥',
+    fileBullet: '📄',
+    toolBullet: '┣',
+    editBullet: '◼︎',
+    errorBullet: '⨯',
+    thinkingBullet: '┣',
+    agentBullet: '┣',
+    showEmoji: true,
+    showThinking: true,
+  },
+  minimal: {
+    textBullet: '',
+    fileBullet: '',
+    toolBullet: '-',
+    editBullet: '-',
+    errorBullet: 'x',
+    thinkingBullet: '',
+    agentBullet: '-',
+    showEmoji: false,
+    showThinking: false,
+  },
+  detailed: {
+    textBullet: '💬',
+    fileBullet: '📄',
+    toolBullet: '🔧',
+    editBullet: '✏️',
+    errorBullet: '❌',
+    thinkingBullet: '🧠',
+    agentBullet: '🤖',
+    showEmoji: true,
+    showThinking: true,
+  },
+  plain: {
+    textBullet: '-',
+    fileBullet: '[file]',
+    toolBullet: '[tool]',
+    editBullet: '[edit]',
+    errorBullet: '[error]',
+    thinkingBullet: '[think]',
+    agentBullet: '[agent]',
+    showEmoji: false,
+    showThinking: true,
+  },
+}
+
+export function getThemeConfig(theme: ThemeType): ThemeConfig {
+  return themes[theme] || themes.default
+}
+
+export function formatPart(part: Part, prefix?: string, theme: ThemeType = 'default'): string {
   const pfx = prefix ? `${prefix} ⋅ ` : ''
+  const t = getThemeConfig(theme)
 
   if (part.type === 'text') {
     if (!part.text?.trim()) return ''
-    // For subtask text, always use bullet with prefix
     if (prefix) {
-      return `⬥ ${pfx}${part.text.trim()}`
+      return t.textBullet ? `${t.textBullet} ${pfx}${part.text.trim()}` : `${pfx}${part.text.trim()}`
     }
     const trimmed = part.text.trimStart()
     const firstChar = trimmed[0] || ''
@@ -414,18 +479,20 @@ export function formatPart(part: Part, prefix?: string): string {
     if (startsWithMarkdown) {
       return `\n${part.text}`
     }
-    return `⬥ ${part.text}`
+    return t.textBullet ? `${t.textBullet} ${part.text}` : part.text
   }
 
   if (part.type === 'reasoning') {
     if (!part.text?.trim()) return ''
-    return `┣ ${pfx}thinking`
+    if (!t.showThinking) return ''
+    return t.thinkingBullet ? `${t.thinkingBullet} ${pfx}thinking` : `${pfx}thinking`
   }
 
   if (part.type === 'file') {
+    const bullet = t.fileBullet || ''
     return prefix
-      ? `📄 ${pfx}${part.filename || 'File'}`
-      : `📄 ${part.filename || 'File'}`
+      ? `${bullet} ${pfx}${part.filename || 'File'}`.trim()
+      : `${bullet} ${part.filename || 'File'}`.trim()
   }
 
   if (
@@ -437,25 +504,23 @@ export function formatPart(part: Part, prefix?: string): string {
   }
 
   if (part.type === 'agent') {
-    return `┣ ${pfx}agent ${part.id}`
+    return `${t.agentBullet} ${pfx}agent ${part.id}`
   }
 
   if (part.type === 'snapshot') {
-    return `┣ ${pfx}snapshot ${part.snapshot}`
+    return `${t.toolBullet} ${pfx}snapshot ${part.snapshot}`
   }
 
   if (part.type === 'tool') {
     if (part.tool === 'todowrite') {
       const formatted = formatTodoList(part)
-      return prefix && formatted ? `┣ ${pfx}${formatted}` : formatted
+      return prefix && formatted ? `${t.toolBullet} ${pfx}${formatted}` : formatted
     }
 
-    // Question tool is handled via Discord dropdowns, not text
     if (part.tool === 'question') {
       return ''
     }
 
-    // Task tool display is handled in session-handler with proper label
     if (part.tool === 'task') {
       return ''
     }
@@ -487,16 +552,16 @@ export function formatPart(part: Part, prefix?: string): string {
 
     const icon = (() => {
       if (part.state.status === 'error') {
-        return '⨯'
+        return t.errorBullet
       }
       if (
         part.tool === 'edit' ||
         part.tool === 'write' ||
         part.tool === 'apply_patch'
       ) {
-        return '◼︎'
+        return t.editBullet
       }
-      return '┣'
+      return t.toolBullet
     })()
     const toolParts = [part.tool, toolTitle, summaryText]
       .filter(Boolean)

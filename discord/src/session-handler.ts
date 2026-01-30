@@ -22,6 +22,9 @@ import {
   setSessionAgent,
   getThreadWorktree,
   getChannelVerbosity,
+  getChannelTheme,
+  getBotSettings,
+  getChannelDirectory,
 } from './database.js'
 import {
   initializeOpencodeForDirectory,
@@ -743,10 +746,13 @@ export async function handleOpencodeSession({
     }
   }
 
-  // Read verbosity dynamically so mid-session /verbosity changes take effect immediately
+  // Read verbosity and theme dynamically so mid-session changes take effect immediately
   const verbosityChannelId = channelId || thread.parentId || thread.id
   const getVerbosity = () => {
     return getChannelVerbosity(verbosityChannelId)
+  }
+  const getTheme = () => {
+    return getChannelTheme(verbosityChannelId)
   }
 
   const sendPartMessage = async (part: Part) => {
@@ -766,9 +772,8 @@ export async function handleOpencodeSession({
       }
     }
 
-    const content = formatPart(part) + '\n\n'
+    const content = formatPart(part, undefined, getTheme()) + '\n\n'
     if (!content.trim() || content.length === 0) {
-      // discordLogger.log(`SKIP: Part ${part.id} has no content`)
       return
     }
 
@@ -1110,7 +1115,7 @@ export async function handleOpencodeSession({
         return
       }
 
-      const content = formatPart(part, subtaskInfo.label)
+      const content = formatPart(part, subtaskInfo.label, getTheme())
       if (!content.trim() || sentPartIds.has(part.id)) {
         return
       }
@@ -1568,6 +1573,18 @@ export async function handleOpencodeSession({
           `DURATION: Session completed in ${sessionDuration}, port ${port}, model ${usedModel}, tokens ${tokensUsedInSession}`,
         )
 
+        const channelConfig = getChannelDirectory(channelId || thread.parentId || thread.id)
+        if (channelConfig?.appId) {
+          await sendHubNotification({
+            appId: channelConfig.appId,
+            thread,
+            directory,
+            sessionDuration,
+            contextInfo,
+            modelInfo,
+          })
+        }
+
         // Process queued messages after completion
         const queue = messageQueue.get(thread.id)
         if (queue && queue.length > 0) {
@@ -1874,4 +1891,44 @@ export async function handleOpencodeSession({
     return `[${name}]\n${message}`
   })()
   await sendThreadMessage(thread, `✗ Unexpected bot Error: ${errorDisplay}`)
+}
+
+async function sendHubNotification({
+  appId,
+  thread,
+  directory,
+  sessionDuration,
+  contextInfo,
+  modelInfo,
+}: {
+  appId: string
+  thread: ThreadChannel
+  directory: string
+  sessionDuration: string
+  contextInfo: string
+  modelInfo: string
+}): Promise<void> {
+  const result = await errore.tryAsync(async () => {
+    const settings = getBotSettings(appId)
+    if (!settings.hub_channel_id) {
+      return
+    }
+
+    const hubChannel = await thread.client.channels.fetch(settings.hub_channel_id)
+    if (!hubChannel?.isTextBased() || !('send' in hubChannel)) {
+      return
+    }
+
+    const projectName = directory.split('/').pop() || directory
+    const threadUrl = `https://discord.com/channels/${thread.guildId}/${thread.id}`
+
+    await hubChannel.send({
+      content: `✅ **${projectName}** completed\n⏱ ${sessionDuration}${contextInfo}${modelInfo}\n🧵 [${thread.name}](${threadUrl})`,
+      flags: NOTIFY_MESSAGE_FLAGS,
+    })
+  })
+
+  if (result instanceof Error) {
+    sessionLogger.error('Failed to send hub notification:', result)
+  }
 }

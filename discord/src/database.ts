@@ -122,6 +122,8 @@ export function getDatabase(): Database.Database {
     runWorktreeSettingsMigrations(db)
     runVerbosityMigrations(db)
     runRunConfigMigrations(db)
+    runThemeMigrations(db)
+    runBotSettingsMigrations(db)
   }
 
   return db
@@ -507,6 +509,81 @@ export function setRunConfig(
     updated.notify_system,
     updated.webhook_url,
   )
+}
+
+export type ThemeType = 'default' | 'minimal' | 'detailed' | 'plain'
+
+export function runThemeMigrations(database?: Database.Database): void {
+  const targetDb = database || getDatabase()
+
+  targetDb.exec(`
+    CREATE TABLE IF NOT EXISTS channel_theme (
+      channel_id TEXT PRIMARY KEY,
+      theme TEXT NOT NULL DEFAULT 'default',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  dbLogger.log('Channel theme migrations complete')
+}
+
+export function getChannelTheme(channelId: string): ThemeType {
+  const db = getDatabase()
+  const row = db
+    .prepare('SELECT theme FROM channel_theme WHERE channel_id = ?')
+    .get(channelId) as { theme: string } | undefined
+  return (row?.theme as ThemeType) || 'default'
+}
+
+export function setChannelTheme(channelId: string, theme: ThemeType): void {
+  const db = getDatabase()
+  db.prepare(
+    `INSERT INTO channel_theme (channel_id, theme, updated_at) 
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(channel_id) DO UPDATE SET theme = ?, updated_at = CURRENT_TIMESTAMP`,
+  ).run(channelId, theme, theme)
+}
+
+export type BotSettings = {
+  hub_channel_id: string | null
+}
+
+export function runBotSettingsMigrations(database?: Database.Database): void {
+  const targetDb = database || getDatabase()
+
+  targetDb.exec(`
+    CREATE TABLE IF NOT EXISTS bot_settings (
+      app_id TEXT PRIMARY KEY,
+      hub_channel_id TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  dbLogger.log('Bot settings migrations complete')
+}
+
+export function getBotSettings(appId: string): BotSettings {
+  const db = getDatabase()
+  const row = db
+    .prepare('SELECT hub_channel_id FROM bot_settings WHERE app_id = ?')
+    .get(appId) as { hub_channel_id: string | null } | undefined
+  return { hub_channel_id: row?.hub_channel_id || null }
+}
+
+export function setBotSettings(
+  appId: string,
+  settings: Partial<BotSettings>,
+): void {
+  const db = getDatabase()
+  const current = getBotSettings(appId)
+  const updated = { ...current, ...settings }
+
+  db.prepare(
+    `INSERT INTO bot_settings (app_id, hub_channel_id, updated_at)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(app_id) DO UPDATE SET 
+       hub_channel_id = ?, updated_at = CURRENT_TIMESTAMP`,
+  ).run(appId, updated.hub_channel_id, updated.hub_channel_id)
 }
 
 export function getChannelDirectory(channelId: string):
