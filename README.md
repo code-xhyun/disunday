@@ -17,7 +17,7 @@ Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
 ```
 Set up Disunday Discord bot for me:
 
-1. Clone https://github.com/[USERNAME]/disunday-opencode
+1. Clone https://github.com/code-xhyun/disunday
 2. Run `pnpm install` in root directory
 3. Run `cd discord && pnpm dev` to start
 
@@ -33,7 +33,7 @@ If any errors occur during installation, help me troubleshoot.
 ### Manual Installation
 
 ```bash
-git clone https://github.com/[USERNAME]/disunday-opencode
+git clone https://github.com/code-xhyun/disunday
 cd disunday-opencode
 pnpm install
 cd discord && pnpm dev
@@ -67,6 +67,37 @@ The setup wizard will:
 5. **Gemini API Key (Optional)** - For voice message transcription
 
 Keep the CLI running. It's the bridge between Discord and your machine.
+
+## Auto-Start on Boot
+
+Run the bot automatically when your computer starts:
+
+```bash
+./scripts/install-service.sh
+```
+
+**macOS**: Installs LaunchAgent (starts on login)
+**Linux**: Installs systemd user service
+
+### Service Commands
+
+**macOS:**
+
+```bash
+launchctl start com.disunday.bot   # Start
+launchctl stop com.disunday.bot    # Stop
+tail -f ~/.disunday/logs/disunday.log  # Logs
+./scripts/uninstall-service.sh     # Uninstall
+```
+
+**Linux:**
+
+```bash
+systemctl --user start disunday    # Start
+systemctl --user stop disunday     # Stop
+journalctl --user -u disunday -f   # Logs
+./scripts/uninstall-service.sh     # Uninstall
+```
 
 ## Architecture: One Bot Per Machine
 
@@ -331,7 +362,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Disunday
-        run: git clone https://github.com/[USERNAME]/disunday-opencode.git
+        run: git clone https://github.com/code-xhyun/disunday.git
       - name: Install dependencies
         run: cd disunday-opencode && pnpm install
       - name: Start Disunday Session
