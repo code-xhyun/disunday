@@ -454,6 +454,16 @@ async function registerCommands({
       .setDescription('Share the current session as a public URL')
       .toJSON(),
     new SlashCommandBuilder()
+      .setName('rename')
+      .setDescription('Rename the current session (also renames thread)')
+      .addStringOption((option) => {
+        return option
+          .setName('title')
+          .setDescription('New session title')
+          .setRequired(true)
+      })
+      .toJSON(),
+    new SlashCommandBuilder()
       .setName('session-info')
       .setDescription(
         'Show session ID and terminal command to continue in terminal',

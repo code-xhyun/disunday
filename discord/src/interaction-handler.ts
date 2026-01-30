@@ -27,6 +27,7 @@ import { handlePermissionSelectMenu } from './commands/permissions.js'
 import { handleAbortCommand } from './commands/abort.js'
 import { handleCompactCommand } from './commands/compact.js'
 import { handleShareCommand } from './commands/share.js'
+import { handleRenameCommand } from './commands/rename.js'
 import { handleSessionInfoCommand } from './commands/session-info.js'
 import { handleSyncCommand } from './commands/sync.js'
 import { handleForkCommand, handleForkSelectMenu } from './commands/fork.js'
@@ -177,6 +178,10 @@ export function registerInteractionHandler({
 
             case 'share':
               await handleShareCommand({ command: interaction, appId })
+              return
+
+            case 'rename':
+              await handleRenameCommand({ command: interaction, appId })
               return
 
             case 'session-info':
