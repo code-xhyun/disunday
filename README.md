@@ -414,10 +414,9 @@ You can start Disunday sessions from CI pipelines, cron jobs, or any automation.
 
 ### Environment Variables
 
-| Variable             | Required    | Description                                   |
-| -------------------- | ----------- | --------------------------------------------- |
-| `DISUNDAY_BOT_TOKEN` | Yes (in CI) | Discord bot token                             |
-| `KIMAKI_BOT_TOKEN`   | Fallback    | Legacy environment variable (still supported) |
+| Variable             | Required    | Description       |
+| -------------------- | ----------- | ----------------- |
+| `DISUNDAY_BOT_TOKEN` | Yes (in CI) | Discord bot token |
 
 ### CLI Options
 
