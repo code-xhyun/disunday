@@ -1,9 +1,8 @@
 <div align='center'>
     <br/>
-    <br/>
+    <img src="assets/logo.png" alt="disunday" width="120" />
     <h3>disunday</h3>
     <p>Iron Man's Jarvis for coding agents, inside Discord</p>
-    <br/>
     <br/>
 </div>
 
