@@ -298,6 +298,23 @@ Execute whitelisted terminal commands directly from Discord with `/run`. Useful 
 - Run in background for long-running commands
 - Get Discord, system, or webhook notifications on completion
 
+### Bot Settings
+
+Configure bot-wide settings using `/settings`:
+
+| Setting      | Command                                  | Description                                          |
+| ------------ | ---------------------------------------- | ---------------------------------------------------- |
+| Hub Channel  | `/settings hub-channel channel:#channel` | Central notification channel for session completions |
+| View         | `/settings view`                         | View current bot settings                            |
+
+When a hub channel is configured, session completions send notifications:
+
+```
+✅ **project-name** completed
+⏱ 28.6s · 73% · claude-opus-4-5
+🧵 thread-name (link)
+```
+
 ## Commands Reference
 
 ### Text Interaction
@@ -334,8 +351,6 @@ Just send a message in any channel linked to a project. Disunday handles the res
 | `/run-config`                | Configure /run notification settings                                       |
 | `/verbosity <level>`         | Set output verbosity (tools-and-text, text-and-essential-tools, text-only) |
 | `/theme <style>`             | Set message formatting theme (default, minimal, detailed, plain)           |
-| `/settings hub-channel`      | Set central notification channel for session completions                   |
-| `/settings view`             | View current bot settings                                                  |
 | `/restart-opencode-server`   | Restart the OpenCode server for this channel                               |
 | `/status`                    | Check bot and session status                                               |
 | `/help`                      | Show available commands                                                    |
