@@ -31,7 +31,7 @@ If any errors occur during installation, help me troubleshoot.
 
 ```bash
 git clone https://github.com/code-xhyun/disunday
-cd disunday-opencode
+cd disunday
 pnpm install
 cd discord && pnpm dev
 ```
@@ -423,12 +423,12 @@ jobs:
       - name: Clone Disunday
         run: git clone https://github.com/code-xhyun/disunday.git
       - name: Install dependencies
-        run: cd disunday-opencode && pnpm install
+        run: cd disunday && pnpm install
       - name: Start Disunday Session
         env:
           DISUNDAY_BOT_TOKEN: ${{ secrets.DISUNDAY_BOT_TOKEN }}
         run: |
-          cd disunday-opencode/discord && pnpm tsx src/cli.ts send \
+          cd disunday/discord && pnpm tsx src/cli.ts send \
             --channel "1234567890123456789" \
             --prompt "Investigate issue ${{ github.event.issue.html_url }} using gh cli. Try fixing it in a new worktree ./${{ github.event.issue.number }}" \
             --name "Issue #${{ github.event.issue.number }}"
