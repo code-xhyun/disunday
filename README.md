@@ -12,11 +12,32 @@ Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) 
 
 ## Quick Start
 
-```bash
-npx -y disunday@latest
+Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
+
+```
+Set up Disunday Discord bot for me:
+
+1. Clone https://github.com/[USERNAME]/disunday-opencode
+2. Run `pnpm install` in root directory
+3. Run `cd discord && pnpm dev` to start
+
+The CLI will guide me through Discord bot setup, but help me with:
+- Creating a Discord bot at https://discord.com/developers/applications
+- Enabling "MESSAGE CONTENT INTENT" and "SERVER MEMBERS INTENT" in Bot settings
+- Generating invite URL with Administrator permissions
+- Getting the bot token
+
+If any errors occur during installation, help me troubleshoot.
 ```
 
-That's it. The CLI guides you through everything.
+### Manual Installation
+
+```bash
+git clone https://github.com/[USERNAME]/disunday-opencode
+cd disunday-opencode
+pnpm install
+cd discord && pnpm dev
+```
 
 ## What is Disunday?
 
@@ -34,7 +55,7 @@ Think of it as texting your codebase. You describe what you want, the AI does it
 Run the CLI and follow the interactive prompts:
 
 ```bash
-npx -y disunday@latest
+cd discord && pnpm dev
 ```
 
 The setup wizard will:
@@ -67,13 +88,13 @@ By default, Disunday stores its data in `~/.disunday`. To run multiple bot insta
 
 ```bash
 # Instance 1 - uses default ~/.disunday
-npx -y disunday@latest
+cd discord && pnpm dev
 
 # Instance 2 - separate data directory
-npx -y disunday@latest --data-dir ~/work-bot
+cd discord && pnpm dev -- --data-dir ~/work-bot
 
 # Instance 3 - another separate instance
-npx -y disunday@latest --data-dir ~/personal-bot
+cd discord && pnpm dev -- --data-dir ~/personal-bot
 ```
 
 Each instance has its own:
@@ -94,7 +115,7 @@ A single Disunday instance can serve multiple Discord servers. Install the bot i
 
 ### Method 1: Use `/add-project` command
 
-1. Run `npx disunday` once to set up the bot
+1. Run `pnpm dev` once to set up the bot
 2. Install the bot in both servers using the install URL
 3. In **Server A**: run `/add-project` and select your project
 4. In **Server B**: run `/add-project` and select your project
@@ -103,8 +124,8 @@ The `/add-project` command creates channels in whichever server you run it from.
 
 ### Method 2: Re-run CLI with `--add-channels`
 
-1. Run `npx disunday` - set up bot, install in both servers, create channels in first server
-2. Run `npx disunday --add-channels` - select projects for the second server
+1. Run `pnpm dev` - set up bot, install in both servers, create channels in first server
+2. Run `pnpm dev -- --add-channels` - select projects for the second server
 
 The setup wizard lets you pick one server at a time.
 
@@ -226,21 +247,23 @@ Just send a message in any channel linked to a project. Disunday handles the res
 
 ### CLI Commands
 
+All commands run from the `discord` directory:
+
 ```bash
 # Start the bot (interactive setup on first run)
-npx -y disunday@latest
+pnpm dev
 
 # Upload files to a Discord thread
-npx -y disunday upload-to-discord --session <session-id> <file1> [file2...]
+pnpm tsx src/cli.ts upload-to-discord --session <session-id> <file1> [file2...]
 
 # Start a session programmatically (useful for CI/automation)
-npx -y disunday send --channel <channel-id> --prompt "your prompt"
+pnpm tsx src/cli.ts send --channel <channel-id> --prompt "your prompt"
 
 # Send notification without starting AI session (reply to start session later)
-npx -y disunday send --channel <channel-id> --prompt "User cancelled subscription" --notify-only
+pnpm tsx src/cli.ts send --channel <channel-id> --prompt "User cancelled subscription" --notify-only
 
 # Create Discord channels for a project directory (without starting a session)
-npx -y disunday add-project [directory]
+pnpm tsx src/cli.ts add-project [directory]
 ```
 
 ## Add Project Channels
@@ -249,16 +272,16 @@ Create Discord channels for a project directory without starting a session. Usef
 
 ```bash
 # Add current directory as a project
-npx -y disunday add-project
+pnpm tsx src/cli.ts add-project
 
 # Add a specific directory
-npx -y disunday add-project /path/to/project
+pnpm tsx src/cli.ts add-project /path/to/project
 
 # Specify guild when bot is in multiple servers
-npx -y disunday add-project ./myproject --guild 123456789
+pnpm tsx src/cli.ts add-project ./myproject --guild 123456789
 
 # In CI with env var for bot token
-DISUNDAY_BOT_TOKEN=xxx npx -y disunday add-project --app-id 987654321
+DISUNDAY_BOT_TOKEN=xxx pnpm tsx src/cli.ts add-project --app-id 987654321
 ```
 
 ### Options
@@ -283,7 +306,7 @@ You can start Disunday sessions from CI pipelines, cron jobs, or any automation.
 ### CLI Options
 
 ```bash
-npx -y disunday send \
+pnpm tsx src/cli.ts send \
   --channel <channel-id>  # Required: Discord channel ID
   --prompt <prompt>       # Required: Message content
   --name <name>           # Optional: Thread name (defaults to prompt preview)
@@ -307,11 +330,15 @@ jobs:
   investigate:
     runs-on: ubuntu-latest
     steps:
+      - name: Clone Disunday
+        run: git clone https://github.com/[USERNAME]/disunday-opencode.git
+      - name: Install dependencies
+        run: cd disunday-opencode && pnpm install
       - name: Start Disunday Session
         env:
           DISUNDAY_BOT_TOKEN: ${{ secrets.DISUNDAY_BOT_TOKEN }}
         run: |
-          npx -y disunday send \
+          cd disunday-opencode/discord && pnpm tsx src/cli.ts send \
             --channel "1234567890123456789" \
             --prompt "Investigate issue ${{ github.event.issue.html_url }} using gh cli. Try fixing it in a new worktree ./${{ github.event.issue.number }}" \
             --name "Issue #${{ github.event.issue.number }}"
