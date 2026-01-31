@@ -39,6 +39,8 @@ import type {
 import {
   Events,
   ChannelType,
+  ApplicationCommandType,
+  ContextMenuCommandBuilder,
   type CategoryChannel,
   type Guild,
   REST,
@@ -735,6 +737,18 @@ async function registerCommands({
         .toJSON(),
     )
   }
+
+  // Context menu commands (right-click on message)
+  commands.push(
+    new ContextMenuCommandBuilder()
+      .setName('Retry this prompt')
+      .setType(ApplicationCommandType.Message)
+      .toJSON() as any,
+    new ContextMenuCommandBuilder()
+      .setName('Fork from here')
+      .setType(ApplicationCommandType.Message)
+      .toJSON() as any,
+  )
 
   const rest = new REST().setToken(token)
 

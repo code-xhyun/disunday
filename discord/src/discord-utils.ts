@@ -2,7 +2,15 @@
 // Handles markdown splitting for Discord's 2000-char limit, code block escaping,
 // thread message sending, and channel metadata extraction from topic tags.
 
-import { ChannelType, type Message, type TextChannel, type ThreadChannel } from 'discord.js'
+import {
+  ChannelType,
+  PermissionsBitField,
+  type GuildMember,
+  type Guild,
+  type Message,
+  type TextChannel,
+  type ThreadChannel,
+} from 'discord.js'
 import { Lexer } from 'marked'
 import { formatMarkdownTables } from './format-tables.js'
 import { getChannelDirectory } from './database.js'
@@ -323,6 +331,29 @@ export async function resolveTextChannel(
 
 export function escapeDiscordFormatting(text: string): string {
   return text.replace(/```/g, '\\`\\`\\`').replace(/````/g, '\\`\\`\\`\\`')
+}
+
+/**
+ * Check if a member has required permissions to use Disunday.
+ * Returns true if user is owner, admin, has ManageGuild, or has "Disunday" role.
+ * Returns false if user has "no-disunday" role (blocks access).
+ */
+export function hasRequiredPermissions(member: GuildMember, guild: Guild): boolean {
+  const hasNoDisundayRole = member.roles.cache.some(
+    (role) => role.name.toLowerCase() === 'no-disunday',
+  )
+  if (hasNoDisundayRole) {
+    return false
+  }
+
+  const isOwner = member.id === guild.ownerId
+  const isAdmin = member.permissions.has(PermissionsBitField.Flags.Administrator)
+  const canManageServer = member.permissions.has(PermissionsBitField.Flags.ManageGuild)
+  const hasDisundayRole = member.roles.cache.some(
+    (role) => role.name.toLowerCase() === 'disunday',
+  )
+
+  return isOwner || isAdmin || canManageServer || hasDisundayRole
 }
 
 export function getKimakiMetadata(textChannel: TextChannel | null): {

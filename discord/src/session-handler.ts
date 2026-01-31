@@ -61,6 +61,16 @@ const discordLogger = createLogger(LogPrefix.DISCORD)
 
 export const abortControllers = new Map<string, AbortController>()
 
+export function abortSession(sessionId: string): boolean {
+  const controller = abortControllers.get(sessionId)
+  if (!controller) {
+    return false
+  }
+  sessionLogger.log(`[ABORT] reason=user-reaction sessionId=${sessionId}`)
+  controller.abort(new Error('user-abort'))
+  return true
+}
+
 // Built-in tools that are hidden in text-and-essential-tools verbosity mode.
 // Essential tools (edits, bash with side effects, todos, tasks, custom MCP tools) are shown; these navigation/read tools are hidden.
 const NON_ESSENTIAL_TOOLS = new Set([
@@ -682,6 +692,7 @@ export async function handleOpencodeSession({
 
   const partBuffer = new Map<string, Map<string, Part>>()
   let stopTyping: (() => void) | null = null
+  let stopProgress: (() => void) | null = null
   let usedModel: string | undefined
   let usedProviderID: string | undefined
   let usedAgent: string | undefined
@@ -693,9 +704,59 @@ export async function handleOpencodeSession({
   let handlerPromise: Promise<void> | null = null
 
   let typingInterval: NodeJS.Timeout | null = null
+  let progressInterval: NodeJS.Timeout | null = null
   let hasSentParts = false
   let promptResolved = false
   let hasReceivedEvent = false
+
+  function startProgressTimer(): () => void {
+    if (abortController.signal.aborted) {
+      return () => {}
+    }
+    if (progressInterval) {
+      clearInterval(progressInterval)
+      progressInterval = null
+    }
+
+    progressInterval = setInterval(() => {
+      if (abortController.signal.aborted) {
+        if (progressInterval) {
+          clearInterval(progressInterval)
+          progressInterval = null
+        }
+        return
+      }
+      const elapsed = Date.now() - sessionStartTime
+      const elapsedSec = Math.floor(elapsed / 1000)
+      const duration = (() => {
+        if (elapsedSec < 60) {
+          return `${elapsedSec}s`
+        }
+        const mins = Math.floor(elapsedSec / 60)
+        const secs = elapsedSec % 60
+        return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`
+      })()
+      void thread.send({ content: `⏳ Working... (${duration})`, flags: SILENT_MESSAGE_FLAGS })
+    }, 30_000)
+
+    abortController.signal.addEventListener(
+      'abort',
+      () => {
+        if (progressInterval) {
+          clearInterval(progressInterval)
+          progressInterval = null
+        }
+      },
+      { once: true },
+    )
+
+    return () => {
+      if (progressInterval) {
+        clearInterval(progressInterval)
+        progressInterval = null
+      }
+    }
+  }
 
   function startTyping(): () => void {
     if (abortController.signal.aborted) {
@@ -1221,6 +1282,10 @@ export async function handleOpencodeSession({
           stopTyping()
           stopTyping = null
         }
+        if (stopProgress) {
+          stopProgress()
+          stopProgress = null
+        }
         if (!pendingPermissions.has(thread.id)) {
           pendingPermissions.set(thread.id, new Map())
         }
@@ -1250,6 +1315,10 @@ export async function handleOpencodeSession({
       if (stopTyping) {
         stopTyping()
         stopTyping = null
+      }
+      if (stopProgress) {
+        stopProgress()
+        stopProgress = null
       }
 
       const { messageId, contextHash } = await showPermissionDropdown({
@@ -1319,6 +1388,10 @@ export async function handleOpencodeSession({
       if (stopTyping) {
         stopTyping()
         stopTyping = null
+      }
+      if (stopProgress) {
+        stopProgress()
+        stopProgress = null
       }
 
       await flushBufferedParts({
@@ -1501,6 +1574,10 @@ export async function handleOpencodeSession({
         stopTyping()
         stopTyping = null
       }
+      if (stopProgress) {
+        stopProgress()
+        stopProgress = null
+      }
 
       const abortReason = (abortController.signal.reason as Error)?.message
       if (!abortController.signal.aborted || abortReason === 'finished') {
@@ -1652,6 +1729,7 @@ export async function handleOpencodeSession({
     }
 
     stopTyping = startTyping()
+    stopProgress = startProgressTimer()
 
     voiceLogger.log(
       `[PROMPT] Sending prompt to session ${session.id}: "${prompt.slice(0, 100)}${prompt.length > 100 ? '...' : ''}"`,

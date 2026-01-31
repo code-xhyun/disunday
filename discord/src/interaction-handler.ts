@@ -68,6 +68,10 @@ import { handleCostCommand } from './commands/cost.js'
 import { handleDiffCommand } from './commands/diff.js'
 import { handleExportCommand } from './commands/export.js'
 import { handleFilesCommand } from './commands/files.js'
+import {
+  handleRetryContextMenu,
+  handleForkContextMenu,
+} from './commands/context-menu.js'
 import { createLogger, LogPrefix } from './logger.js'
 
 const interactionLogger = createLogger(LogPrefix.INTERACTION)
@@ -352,6 +356,23 @@ export function registerInteractionHandler({
           if (customId.startsWith('login_apikey:')) {
             await handleApiKeyModalSubmit(interaction)
             return
+          }
+          return
+        }
+
+        if (interaction.isMessageContextMenuCommand()) {
+          interactionLogger.log(
+            `[CONTEXT-MENU] Processing: ${interaction.commandName}`,
+          )
+
+          switch (interaction.commandName) {
+            case 'Retry this prompt':
+              await handleRetryContextMenu({ interaction, appId })
+              return
+
+            case 'Fork from here':
+              await handleForkContextMenu({ interaction, appId })
+              return
           }
           return
         }

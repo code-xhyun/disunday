@@ -315,6 +315,36 @@ When a hub channel is configured, session completions send notifications:
 🧵 thread-name (link)
 ```
 
+### Reaction Commands
+
+React to messages in threads to trigger quick actions:
+
+| Reaction | Action |
+| -------- | ------ |
+| 🔄 | Retry the last user prompt |
+| ❌ | Abort the current session |
+| 📌 | Pin the message |
+
+Reactions are automatically removed after the action is triggered.
+
+### Context Menu Commands
+
+Right-click on any message in a session thread to access:
+
+- **Retry this prompt** - Re-run the selected user message
+- **Fork from here** - Create a new session branching from the selected AI response
+
+### Progress Indicator
+
+During long sessions, periodic updates show elapsed time:
+
+```
+⏳ Working... (45s)
+⏳ Working... (1m 15s)
+```
+
+Updates appear every 30 seconds while the AI is processing.
+
 ## Commands Reference
 
 ### Text Interaction

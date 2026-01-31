@@ -43,6 +43,7 @@ import {
 import { getCompactSessionContext, getLastSessionId } from './markdown.js'
 import { handleOpencodeSession } from './session-handler.js'
 import { registerInteractionHandler } from './interaction-handler.js'
+import { registerReactionHandler } from './reaction-handler.js'
 import { refreshSessionCache } from './commands/resume.js'
 import { sanitizeForXml } from './security.js'
 import { sanitizeErrorForUser, getErrorForLogging } from './errors.js'
@@ -171,12 +172,14 @@ export async function createDiscordClient() {
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
       GatewayIntentBits.GuildVoiceStates,
+      GatewayIntentBits.GuildMessageReactions,
     ],
     partials: [
       Partials.Channel,
       Partials.Message,
       Partials.User,
       Partials.ThreadMember,
+      Partials.Reaction,
     ],
   })
 }
@@ -239,6 +242,7 @@ export async function startDiscordBot({
 
     registerInteractionHandler({ discordClient: c, appId: currentAppId })
     registerVoiceStateHandler({ discordClient: c, appId: currentAppId })
+    registerReactionHandler({ discordClient: c, appId: currentAppId })
 
     const projectDirectories = new Set<string>()
     for (const guild of c.guilds.cache.values()) {
