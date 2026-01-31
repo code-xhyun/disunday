@@ -27,6 +27,49 @@ The CLI will guide me through Discord bot setup, but help me with:
 If any errors occur during installation, help me troubleshoot.
 ```
 
+### Detailed AI Setup Prompt
+
+For step-by-step guidance, use this expanded prompt:
+
+```
+I want to set up Disunday, a Discord bot for AI coding sessions. Please help me through each step:
+
+## Prerequisites
+- Check if pnpm is installed (`pnpm --version`). If not, install it with `npm install -g pnpm`
+- Check if I have Node.js 18+ (`node --version`)
+
+## Installation
+1. Clone the repository: `git clone https://github.com/code-xhyun/disunday`
+2. Install dependencies: `cd disunday && pnpm install`
+3. Start the bot: `cd discord && pnpm dev`
+
+## Discord Developer Portal Setup
+When the CLI asks for a bot token, guide me through:
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application" → name it "Disunday" (or any name)
+3. Go to "Bot" section in the left sidebar
+4. Click "Reset Token" and copy the token (save it securely!)
+5. Enable these settings under "Privileged Gateway Intents":
+   - MESSAGE CONTENT INTENT ✓
+   - SERVER MEMBERS INTENT ✓
+6. Go to "OAuth2" → "URL Generator"
+7. Select scopes: bot, applications.commands
+8. Select permissions: Administrator
+9. Copy the generated URL and open it to invite the bot to your server
+
+## Troubleshooting
+- If pnpm install fails: try `rm -rf node_modules pnpm-lock.yaml && pnpm install`
+- If bot token is invalid: regenerate it in Discord Developer Portal
+- If bot doesn't respond: check that MESSAGE CONTENT INTENT is enabled
+- If commands don't appear: wait 1-2 minutes for Discord to sync, or try `/help`
+
+After setup, I should be able to:
+- See the bot online in my Discord server
+- Use /add-project to link a project directory
+- Send messages in the project channel to start AI sessions
+```
+
 ### Manual Installation
 
 ```bash
@@ -290,6 +333,23 @@ Work seamlessly between Discord and terminal:
 
 Use `/queue <message>` to queue a follow-up message while the AI is still responding. The queued message sends automatically when the current response finishes. If no response is in progress, it sends immediately. Useful for chaining tasks without waiting.
 
+### Scheduled Messages
+
+Schedule prompts to run at a specific time:
+
+```
+/schedule add prompt:"Run tests and deploy" time:3:00pm
+/schedule add prompt:"Daily standup summary" time:30m
+/schedule list
+/schedule cancel id:5
+```
+
+**Time formats:**
+- Relative: `30m`, `2h`, `1d` (minutes, hours, days from now)
+- Absolute: `3:00pm`, `14:30` (runs today, or tomorrow if time has passed)
+
+Schedules persist across bot restarts. Use `/schedule list` to see pending schedules and `/schedule cancel` to remove them.
+
 ### Run Commands
 
 Execute whitelisted terminal commands directly from Discord with `/run`. Useful for quick operations like `git status`, `pnpm test`, or deployment scripts.
@@ -375,6 +435,9 @@ Just send a message in any channel linked to a project. Disunday handles the res
 | `/sync`                      | Sync recent terminal activity to Discord thread                            |
 | `/queue <message>`           | Queue a message to send after current response finishes                    |
 | `/clear-queue`               | Clear all queued messages in this thread                                   |
+| `/schedule add`              | Schedule a message to run at a specific time                               |
+| `/schedule list`             | List pending schedules in this channel                                     |
+| `/schedule cancel <id>`      | Cancel a scheduled message                                                 |
 | `/undo`                      | Undo the last assistant message (revert file changes)                      |
 | `/redo`                      | Redo the last undone message                                               |
 | `/run <command>`             | Execute a terminal command                                                 |

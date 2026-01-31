@@ -692,6 +692,43 @@ async function registerCommands({
           .setDescription('View current bot settings')
       })
       .toJSON(),
+    new SlashCommandBuilder()
+      .setName('schedule')
+      .setDescription('Schedule a message to run later')
+      .addSubcommand((sub) => {
+        return sub
+          .setName('add')
+          .setDescription('Schedule a new message')
+          .addStringOption((opt) => {
+            return opt
+              .setName('prompt')
+              .setDescription('The message/prompt to schedule')
+              .setRequired(true)
+          })
+          .addStringOption((opt) => {
+            return opt
+              .setName('time')
+              .setDescription('When to run (e.g., 30m, 2h, 3:00pm)')
+              .setRequired(true)
+          })
+      })
+      .addSubcommand((sub) => {
+        return sub
+          .setName('list')
+          .setDescription('List pending schedules in this channel')
+      })
+      .addSubcommand((sub) => {
+        return sub
+          .setName('cancel')
+          .setDescription('Cancel a scheduled message')
+          .addIntegerOption((opt) => {
+            return opt
+              .setName('id')
+              .setDescription('Schedule ID to cancel')
+              .setRequired(true)
+          })
+      })
+      .toJSON(),
   ]
 
   // Add user-defined commands with -cmd suffix

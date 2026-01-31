@@ -44,6 +44,7 @@ import { getCompactSessionContext, getLastSessionId } from './markdown.js'
 import { handleOpencodeSession } from './session-handler.js'
 import { registerInteractionHandler } from './interaction-handler.js'
 import { registerReactionHandler } from './reaction-handler.js'
+import { startScheduler } from './scheduler.js'
 import { refreshSessionCache } from './commands/resume.js'
 import { sanitizeForXml } from './security.js'
 import { sanitizeErrorForUser, getErrorForLogging } from './errors.js'
@@ -243,6 +244,7 @@ export async function startDiscordBot({
     registerInteractionHandler({ discordClient: c, appId: currentAppId })
     registerVoiceStateHandler({ discordClient: c, appId: currentAppId })
     registerReactionHandler({ discordClient: c, appId: currentAppId })
+    startScheduler(c)
 
     const projectDirectories = new Set<string>()
     for (const guild of c.guilds.cache.values()) {

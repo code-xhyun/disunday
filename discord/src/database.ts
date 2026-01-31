@@ -731,3 +731,119 @@ export function closeDatabase(): void {
     db = null
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCHEDULED MESSAGES
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type ScheduledMessage = {
+  id: number
+  channel_id: string
+  thread_id: string | null
+  prompt: string
+  scheduled_at: number
+  created_by: string
+  created_at: string
+  status: 'pending' | 'completed' | 'cancelled' | 'failed'
+  error_message: string | null
+}
+
+export function runScheduleMigrations(database?: Database.Database): void {
+  const targetDb = database || getDatabase()
+
+  targetDb.exec(`
+    CREATE TABLE IF NOT EXISTS scheduled_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      channel_id TEXT NOT NULL,
+      thread_id TEXT,
+      prompt TEXT NOT NULL,
+      scheduled_at INTEGER NOT NULL,
+      created_by TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'pending',
+      error_message TEXT
+    )
+  `)
+
+  targetDb.exec(`
+    CREATE INDEX IF NOT EXISTS idx_scheduled_pending 
+    ON scheduled_messages(status, scheduled_at) 
+    WHERE status = 'pending'
+  `)
+
+  dbLogger.log('Schedule migrations complete')
+}
+
+export function createScheduledMessage({
+  channelId,
+  threadId,
+  prompt,
+  scheduledAt,
+  createdBy,
+}: {
+  channelId: string
+  threadId?: string
+  prompt: string
+  scheduledAt: number
+  createdBy: string
+}): number {
+  const db = getDatabase()
+  const result = db
+    .prepare(
+      `INSERT INTO scheduled_messages (channel_id, thread_id, prompt, scheduled_at, created_by)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .run(channelId, threadId || null, prompt, scheduledAt, createdBy)
+  return result.lastInsertRowid as number
+}
+
+export function getPendingSchedules(beforeTime?: number): ScheduledMessage[] {
+  const db = getDatabase()
+  const time = beforeTime || Date.now()
+  return db
+    .prepare(
+      `SELECT * FROM scheduled_messages 
+       WHERE status = 'pending' AND scheduled_at <= ?
+       ORDER BY scheduled_at ASC`,
+    )
+    .all(time) as ScheduledMessage[]
+}
+
+export function getSchedulesByChannel(channelId: string): ScheduledMessage[] {
+  const db = getDatabase()
+  return db
+    .prepare(
+      `SELECT * FROM scheduled_messages 
+       WHERE (channel_id = ? OR thread_id = ?) AND status = 'pending'
+       ORDER BY scheduled_at ASC`,
+    )
+    .all(channelId, channelId) as ScheduledMessage[]
+}
+
+export function getScheduleById(id: number): ScheduledMessage | undefined {
+  const db = getDatabase()
+  return db
+    .prepare('SELECT * FROM scheduled_messages WHERE id = ?')
+    .get(id) as ScheduledMessage | undefined
+}
+
+export function updateScheduleStatus(
+  id: number,
+  status: 'completed' | 'cancelled' | 'failed',
+  errorMessage?: string,
+): void {
+  const db = getDatabase()
+  db.prepare(
+    `UPDATE scheduled_messages SET status = ?, error_message = ? WHERE id = ?`,
+  ).run(status, errorMessage || null, id)
+}
+
+export function cancelSchedule(id: number, userId: string): boolean {
+  const db = getDatabase()
+  const schedule = getScheduleById(id)
+  if (!schedule || schedule.status !== 'pending') {
+    return false
+  }
+  updateScheduleStatus(id, 'cancelled')
+  return true
+}

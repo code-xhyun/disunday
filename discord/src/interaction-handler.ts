@@ -68,6 +68,7 @@ import { handleCostCommand } from './commands/cost.js'
 import { handleDiffCommand } from './commands/diff.js'
 import { handleExportCommand } from './commands/export.js'
 import { handleFilesCommand } from './commands/files.js'
+import { handleScheduleCommand } from './commands/schedule.js'
 import {
   handleRetryContextMenu,
   handleForkContextMenu,
@@ -285,6 +286,10 @@ export function registerInteractionHandler({
 
             case 'settings':
               await handleSettingsCommand({ command: interaction, appId })
+              return
+
+            case 'schedule':
+              await handleScheduleCommand({ command: interaction, appId })
               return
           }
 
