@@ -356,7 +356,7 @@ export function hasRequiredPermissions(member: GuildMember, guild: Guild): boole
   return isOwner || isAdmin || canManageServer || hasDisundayRole
 }
 
-export function getKimakiMetadata(textChannel: TextChannel | null): {
+export function getDisundayMetadata(textChannel: TextChannel | null): {
   projectDirectory?: string
   channelAppId?: string
 } {

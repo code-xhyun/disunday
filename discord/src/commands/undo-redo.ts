@@ -4,7 +4,7 @@ import { ChannelType, type ThreadChannel } from 'discord.js'
 import type { CommandContext } from './types.js'
 import { getDatabase } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
-import { resolveTextChannel, getKimakiMetadata, SILENT_MESSAGE_FLAGS } from '../discord-utils.js'
+import { resolveTextChannel, getDisundayMetadata, SILENT_MESSAGE_FLAGS } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
 import * as errore from 'errore'
 
@@ -38,7 +38,7 @@ export async function handleUndoCommand({ command }: CommandContext): Promise<vo
   }
 
   const textChannel = await resolveTextChannel(channel as ThreadChannel)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.reply({
@@ -145,7 +145,7 @@ export async function handleRedoCommand({ command }: CommandContext): Promise<vo
   }
 
   const textChannel = await resolveTextChannel(channel as ThreadChannel)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.reply({

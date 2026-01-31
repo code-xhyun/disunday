@@ -4,7 +4,7 @@ import { getDatabase, getThreadWorktree } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   sendThreadMessage,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
@@ -47,7 +47,7 @@ export async function handleSyncCommand({
 
   const thread = channel as ThreadChannel
   const textChannel = await resolveTextChannel(thread)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.editReply(

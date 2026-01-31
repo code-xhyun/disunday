@@ -102,19 +102,19 @@ test('generate markdown from first available session', async () => {
     return
   }
 
-  // Filter sessions with 'kimaki' in their directory
-  const kimakiSessions = sessionsResponse.data.filter((session) =>
-    session.directory.toLowerCase().includes('kimaki'),
+  // Filter sessions with 'disunday' in their directory
+  const disundaySessions = sessionsResponse.data.filter((session) =>
+    session.directory.toLowerCase().includes('disunday'),
   )
 
-  if (kimakiSessions.length === 0) {
-    console.warn('No sessions with "kimaki" in directory found, skipping test')
+  if (disundaySessions.length === 0) {
+    console.warn('No sessions with "disunday" in directory found, skipping test')
     expect(true).toBe(true)
     return
   }
 
-  // Take the first kimaki session
-  const firstSession = kimakiSessions[0]
+  // Take the first disunday session
+  const firstSession = disundaySessions[0]
   const sessionID = firstSession!.id
   console.log(`Using session ID: ${sessionID} (${firstSession!.title || 'Untitled'})`)
 
@@ -151,18 +151,18 @@ test('generate markdown without system info', async () => {
     return
   }
 
-  // Filter sessions with 'kimaki' in their directory
-  const kimakiSessions = sessionsResponse.data.filter((session) =>
-    session.directory.toLowerCase().includes('kimaki'),
+  // Filter sessions with 'disunday' in their directory
+  const disundaySessions = sessionsResponse.data.filter((session) =>
+    session.directory.toLowerCase().includes('disunday'),
   )
 
-  if (kimakiSessions.length === 0) {
-    console.warn('No sessions with "kimaki" in directory found, skipping test')
+  if (disundaySessions.length === 0) {
+    console.warn('No sessions with "disunday" in directory found, skipping test')
     expect(true).toBe(true)
     return
   }
 
-  const firstSession = kimakiSessions[0]
+  const firstSession = disundaySessions[0]
   const sessionID = firstSession!.id
 
   const exporter = new ShareMarkdown(client)
@@ -194,21 +194,21 @@ test('generate markdown from session with tools', async () => {
     return
   }
 
-  // Filter sessions with 'kimaki' in their directory
-  const kimakiSessions = sessionsResponse.data.filter((session) =>
-    session.directory.toLowerCase().includes('kimaki'),
+  // Filter sessions with 'disunday' in their directory
+  const disundaySessions = sessionsResponse.data.filter((session) =>
+    session.directory.toLowerCase().includes('disunday'),
   )
 
-  if (kimakiSessions.length === 0) {
-    console.warn('No sessions with "kimaki" in directory found, skipping test')
+  if (disundaySessions.length === 0) {
+    console.warn('No sessions with "disunday" in directory found, skipping test')
     expect(true).toBe(true)
     return
   }
 
-  // Try to find a kimaki session with tool usage
-  let sessionWithTools: (typeof kimakiSessions)[0] | undefined
+  // Try to find a disunday session with tool usage
+  let sessionWithTools: (typeof disundaySessions)[0] | undefined
 
-  for (const session of kimakiSessions.slice(0, 10)) {
+  for (const session of disundaySessions.slice(0, 10)) {
     // Check first 10 sessions
     try {
       const messages = await client.session.messages({
@@ -225,8 +225,8 @@ test('generate markdown from session with tools', async () => {
   }
 
   if (!sessionWithTools) {
-    console.warn('No kimaki session with tool usage found, using first kimaki session')
-    sessionWithTools = kimakiSessions[0]
+    console.warn('No disunday session with tool usage found, using first disunday session')
+    sessionWithTools = disundaySessions[0]
   }
 
   const exporter = new ShareMarkdown(client)
@@ -259,28 +259,28 @@ test('generate markdown from multiple sessions', async () => {
     return
   }
 
-  // Filter sessions with 'kimaki' in their directory
-  const kimakiSessions = sessionsResponse.data.filter((session) =>
-    session.directory.toLowerCase().includes('kimaki'),
+  // Filter sessions with 'disunday' in their directory
+  const disundaySessions = sessionsResponse.data.filter((session) =>
+    session.directory.toLowerCase().includes('disunday'),
   )
 
-  if (kimakiSessions.length === 0) {
-    console.warn('No sessions with "kimaki" in directory found, skipping test')
+  if (disundaySessions.length === 0) {
+    console.warn('No sessions with "disunday" in directory found, skipping test')
     expect(true).toBe(true)
     return
   }
 
   console.log(
-    `Found ${kimakiSessions.length} kimaki sessions out of ${sessionsResponse.data.length} total sessions`,
+    `Found ${disundaySessions.length} disunday sessions out of ${sessionsResponse.data.length} total sessions`,
   )
 
   const exporter = new ShareMarkdown(client)
 
-  // Generate markdown for up to 3 kimaki sessions
-  const sessionsToTest = Math.min(3, kimakiSessions.length)
+  // Generate markdown for up to 3 disunday sessions
+  const sessionsToTest = Math.min(3, disundaySessions.length)
 
   for (let i = 0; i < sessionsToTest; i++) {
-    const session = kimakiSessions[i]
+    const session = disundaySessions[i]
     console.log(
       `Generating markdown for session ${i + 1}: ${session!.id} - ${session!.title || 'Untitled'}`,
     )

@@ -1,5 +1,5 @@
 // Worktree management command: /new-worktree
-// Uses OpenCode SDK v2 to create worktrees with kimaki- prefix
+// Uses OpenCode SDK v2 to create worktrees with disunday- prefix
 // Creates thread immediately, then worktree in background so user can type
 
 import { ChannelType, type TextChannel, type ThreadChannel, type Message } from 'discord.js'
@@ -29,8 +29,8 @@ class WorktreeError extends Error {
 }
 
 /**
- * Format worktree name: lowercase, spaces to dashes, remove special chars, add opencode/kimaki- prefix.
- * "My Feature" → "opencode/kimaki-my-feature"
+ * Format worktree name: lowercase, spaces to dashes, remove special chars, add opencode/disunday- prefix.
+ * "My Feature" → "opencode/disunday-my-feature"
  * Returns empty string if no valid name can be extracted.
  */
 export function formatWorktreeName(name: string): string {
@@ -43,20 +43,20 @@ export function formatWorktreeName(name: string): string {
   if (!formatted) {
     return ''
   }
-  return `opencode/kimaki-${formatted}`
+  return `opencode/disunday-${formatted}`
 }
 
 /**
  * Derive worktree name from thread name.
- * Handles existing "⬦ worktree: opencode/kimaki-name" format or uses thread name directly.
+ * Handles existing "⬦ worktree: opencode/disunday-name" format or uses thread name directly.
  */
 function deriveWorktreeNameFromThread(threadName: string): string {
-  // Handle existing "⬦ worktree: opencode/kimaki-name" format
+  // Handle existing "⬦ worktree: opencode/disunday-name" format
   const worktreeMatch = threadName.match(/worktree:\s*(.+)$/i)
   const extractedName = worktreeMatch?.[1]?.trim()
   if (extractedName) {
-    // If already has opencode/kimaki- prefix, return as is
-    if (extractedName.startsWith('opencode/kimaki-')) {
+    // If already has opencode/disunday- prefix, return as is
+    if (extractedName.startsWith('opencode/disunday-')) {
       return extractedName
     }
     return formatWorktreeName(extractedName)
@@ -199,7 +199,7 @@ export async function handleNewWorktreeCommand({
   }
 
   // Check if worktree with this name already exists
-  // SDK returns array of directory paths like "~/.opencode/worktree/abc/kimaki-my-feature"
+  // SDK returns array of directory paths like "~/.opencode/worktree/abc/disunday-my-feature"
   const listResult = await errore.tryAsync({
     try: async () => {
       const response = await clientV2.worktree.list({ directory: projectDirectory })

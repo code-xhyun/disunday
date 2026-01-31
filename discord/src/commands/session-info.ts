@@ -3,7 +3,7 @@ import type { CommandContext } from './types.js'
 import { getDatabase, getThreadWorktree } from '../database.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
 
@@ -38,7 +38,7 @@ export async function handleSessionInfoCommand({
   }
 
   const textChannel = await resolveTextChannel(channel as ThreadChannel)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.reply({

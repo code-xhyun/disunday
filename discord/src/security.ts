@@ -1,4 +1,4 @@
-// Security utilities for Kimaki Discord bot.
+// Security utilities for Disunday Discord bot.
 // Provides encryption for sensitive data at rest and sanitization for user input.
 // Uses AES-256-GCM with machine-derived keys for token/API key encryption.
 

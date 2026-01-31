@@ -44,7 +44,7 @@ If I ask you questions about OpenCode you can opensrc it from `anomalyco/opencod
 | Variable             | Description                                |
 | -------------------- | ------------------------------------------ |
 | `DISUNDAY_BOT_TOKEN` | Discord bot token (primary)                |
-| `KIMAKI_BOT_TOKEN`   | Discord bot token (fallback for migration) |
+| `DISUNDAY_BOT_TOKEN`   | Discord bot token (fallback for migration) |
 
 ## Discord Roles
 

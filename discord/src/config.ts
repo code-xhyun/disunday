@@ -1,4 +1,4 @@
-// Runtime configuration for Kimaki bot.
+// Runtime configuration for Disunday bot.
 // Stores data directory path and provides accessors for other modules.
 // Must be initialized before database or other path-dependent modules are used.
 

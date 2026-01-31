@@ -3,7 +3,7 @@ import type { CommandContext } from './types.js'
 import { getDatabase } from '../database.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
@@ -39,7 +39,7 @@ export async function handleContextCommand({
   }
 
   const textChannel = await resolveTextChannel(channel as ThreadChannel)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.reply({

@@ -11,7 +11,7 @@ import {
 import path from 'node:path'
 import { getDatabase, getChannelDirectory } from './database.js'
 
-export async function ensureKimakiCategory(
+export async function ensureDisundayCategory(
   guild: Guild,
   botName?: string,
 ): Promise<CategoryChannel> {
@@ -40,7 +40,7 @@ export async function ensureKimakiCategory(
   })
 }
 
-export async function ensureKimakiAudioCategory(
+export async function ensureDisundayAudioCategory(
   guild: Guild,
   botName?: string,
 ): Promise<CategoryChannel> {
@@ -92,12 +92,12 @@ export async function createProjectChannels({
     .replace(/[^a-z0-9-]/g, '-')
     .slice(0, 100)
 
-  const kimakiCategory = await ensureKimakiCategory(guild, botName)
+  const disundayCategory = await ensureDisundayCategory(guild, botName)
 
   const textChannel = await guild.channels.create({
     name: channelName,
     type: ChannelType.GuildText,
-    parent: kimakiCategory,
+    parent: disundayCategory,
     // Channel configuration is stored in SQLite, not in the topic
   })
 
@@ -110,12 +110,12 @@ export async function createProjectChannels({
   let voiceChannelId: string | null = null
 
   if (enableVoiceChannels) {
-    const kimakiAudioCategory = await ensureKimakiAudioCategory(guild, botName)
+    const disundayAudioCategory = await ensureDisundayAudioCategory(guild, botName)
 
     const voiceChannel = await guild.channels.create({
       name: channelName,
       type: ChannelType.GuildVoice,
-      parent: kimakiAudioCategory,
+      parent: disundayAudioCategory,
     })
 
     getDatabase()
@@ -138,8 +138,8 @@ export type ChannelWithTags = {
   id: string
   name: string
   description: string | null
-  kimakiDirectory?: string
-  kimakiApp?: string
+  disundayDirectory?: string
+  disundayApp?: string
 }
 
 export async function getChannelsWithDescriptions(
@@ -160,8 +160,8 @@ export async function getChannelsWithDescriptions(
         id: textChannel.id,
         name: textChannel.name,
         description,
-        kimakiDirectory: channelConfig?.directory,
-        kimakiApp: channelConfig?.appId || undefined,
+        disundayDirectory: channelConfig?.directory,
+        disundayApp: channelConfig?.appId || undefined,
       })
     })
 

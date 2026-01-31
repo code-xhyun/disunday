@@ -4,7 +4,7 @@ import { getDatabase, getThreadWorktree } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
@@ -46,7 +46,7 @@ export async function handleRenameCommand({
 
   const thread = channel as ThreadChannel
   const textChannel = await resolveTextChannel(thread)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await command.editReply(

@@ -2,7 +2,7 @@ import { ChannelType, type ThreadChannel, type TextChannel } from 'discord.js'
 import type { CommandContext } from './types.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
 import { getThreadWorktree } from '../database.js'
@@ -35,7 +35,7 @@ export async function handleFilesCommand({
 
   if (isThread) {
     const textChannel = await resolveTextChannel(channel as ThreadChannel)
-    const metadata = getKimakiMetadata(textChannel)
+    const metadata = getDisundayMetadata(textChannel)
     directory = metadata.projectDirectory
 
     const worktree = getThreadWorktree(channel.id)
@@ -43,7 +43,7 @@ export async function handleFilesCommand({
       directory = worktree.worktree_directory
     }
   } else {
-    const metadata = getKimakiMetadata(channel as TextChannel)
+    const metadata = getDisundayMetadata(channel as TextChannel)
     directory = metadata.projectDirectory
   }
 

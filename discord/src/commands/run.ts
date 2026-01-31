@@ -256,7 +256,7 @@ export async function handleRunCommand({
         if (runConfig.notify_system) {
           const status = exitCode === 0 ? '✅ Success' : '❌ Failed'
           await sendSystemNotification({
-            title: 'Kimaki',
+            title: 'Disunday',
             message: `${status}: ${cmdString.slice(0, 30)}`,
           })
         }

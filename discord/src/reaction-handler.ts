@@ -12,7 +12,7 @@ import * as errore from 'errore'
 import { getDatabase } from './database.js'
 import { abortSession } from './session-handler.js'
 import { createLogger, LogPrefix } from './logger.js'
-import { hasRequiredPermissions, getKimakiMetadata, resolveTextChannel } from './discord-utils.js'
+import { hasRequiredPermissions, getDisundayMetadata, resolveTextChannel } from './discord-utils.js'
 
 const reactionLogger = createLogger(LogPrefix.REACTION)
 
@@ -140,7 +140,7 @@ async function handleRetryReaction(
   appId: string,
 ): Promise<void> {
   const textChannel = await resolveTextChannel(thread)
-  const { projectDirectory } = getKimakiMetadata(textChannel)
+  const { projectDirectory } = getDisundayMetadata(textChannel)
 
   if (!projectDirectory) {
     return

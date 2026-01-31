@@ -13,7 +13,7 @@ import {
 import crypto from 'node:crypto'
 import { getDatabase, setChannelAgent, setSessionAgent, clearSessionModel, runModelMigrations } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
-import { resolveTextChannel, getKimakiMetadata } from '../discord-utils.js'
+import { resolveTextChannel, getDisundayMetadata } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
 import * as errore from 'errore'
 
@@ -79,7 +79,7 @@ export async function resolveAgentCommandContext({
   if (isThread) {
     const thread = channel as ThreadChannel
     const textChannel = await resolveTextChannel(thread)
-    const metadata = getKimakiMetadata(textChannel)
+    const metadata = getDisundayMetadata(textChannel)
     projectDirectory = metadata.projectDirectory
     channelAppId = metadata.channelAppId
     targetChannelId = textChannel?.id || channel.id
@@ -90,7 +90,7 @@ export async function resolveAgentCommandContext({
     sessionId = row?.session_id
   } else if (channel.type === ChannelType.GuildText) {
     const textChannel = channel as TextChannel
-    const metadata = getKimakiMetadata(textChannel)
+    const metadata = getDisundayMetadata(textChannel)
     projectDirectory = metadata.projectDirectory
     channelAppId = metadata.channelAppId
     targetChannelId = channel.id

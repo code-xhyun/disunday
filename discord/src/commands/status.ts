@@ -3,7 +3,7 @@ import type { CommandContext } from './types.js'
 import { getDatabase, getThreadWorktree } from '../database.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
@@ -34,7 +34,7 @@ export async function handleStatusCommand({
 
   if (isThread) {
     const textChannel = await resolveTextChannel(channel as ThreadChannel)
-    const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+    const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
     if (directory) {
       const row = getDatabase()
@@ -61,7 +61,7 @@ export async function handleStatusCommand({
       }
     }
   } else {
-    const { projectDirectory: directory } = getKimakiMetadata(
+    const { projectDirectory: directory } = getDisundayMetadata(
       channel as TextChannel,
     )
     if (directory) {

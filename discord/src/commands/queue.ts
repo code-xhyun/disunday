@@ -5,7 +5,7 @@ import type { CommandContext } from './types.js'
 import { getDatabase } from '../database.js'
 import {
   resolveTextChannel,
-  getKimakiMetadata,
+  getDisundayMetadata,
   sendThreadMessage,
   SILENT_MESSAGE_FLAGS,
 } from '../discord-utils.js'
@@ -71,7 +71,7 @@ export async function handleQueueCommand({ command }: CommandContext): Promise<v
   if (!hasActiveRequest) {
     // No active request, send immediately
     const textChannel = await resolveTextChannel(channel as ThreadChannel)
-    const { projectDirectory } = getKimakiMetadata(textChannel)
+    const { projectDirectory } = getDisundayMetadata(textChannel)
 
     if (!projectDirectory) {
       await command.reply({

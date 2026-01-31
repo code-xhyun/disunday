@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Main CLI entrypoint for the Kimaki Discord bot.
+// Main CLI entrypoint for the Disunday Discord bot.
 // Handles interactive setup, Discord OAuth, slash command registration,
 // project channel creation, and launching the bot with opencode integration.
 import { cac } from 'cac'
@@ -28,7 +28,7 @@ import {
   getChannelDirectory,
   startDiscordBot,
   initializeOpencodeForDirectory,
-  ensureKimakiCategory,
+  ensureDisundayCategory,
   createProjectChannels,
   type ChannelWithTags,
 } from './discord-bot.js'
@@ -106,7 +106,7 @@ function startCaffeinate() {
     )
   }
 }
-async function migrateFromKimaki(): Promise<boolean> {
+async function migrateFromLegacy(): Promise<boolean> {
   const os = await import('node:os')
   const oldDataDir = path.join(os.default.homedir(), '.kimaki')
   const newDataDir = getDataDir()
@@ -130,7 +130,7 @@ async function migrateFromKimaki(): Promise<boolean> {
   }
 
   const shouldMigrate = await confirm({
-    message: `Found existing Kimaki data at ~/.kimaki. Migrate to ~/.disunday?`,
+    message: `Found existing legacy data at ~/.kimaki. Migrate to ~/.disunday?`,
     initialValue: true,
   })
 
@@ -810,22 +810,22 @@ async function registerCommands({
  * Called after Discord login to persist channel configurations.
  */
 function storeChannelDirectories({
-  kimakiChannels,
+  disundayChannels,
   db,
 }: {
-  kimakiChannels: { guild: Guild; channels: ChannelWithTags[] }[]
+  disundayChannels: { guild: Guild; channels: ChannelWithTags[] }[]
   db: ReturnType<typeof getDatabase>
 }): void {
-  for (const { guild, channels } of kimakiChannels) {
+  for (const { guild, channels } of disundayChannels) {
     for (const channel of channels) {
-      if (channel.kimakiDirectory) {
+      if (channel.disundayDirectory) {
         db.prepare(
           'INSERT OR IGNORE INTO channel_directories (channel_id, directory, channel_type, app_id) VALUES (?, ?, ?, ?)',
         ).run(
           channel.id,
-          channel.kimakiDirectory,
+          channel.disundayDirectory,
           'text',
-          channel.kimakiApp || null,
+          channel.disundayApp || null,
         )
 
         const voiceChannel = guild.channels.cache.find(
@@ -838,9 +838,9 @@ function storeChannelDirectories({
             'INSERT OR IGNORE INTO channel_directories (channel_id, directory, channel_type, app_id) VALUES (?, ?, ?, ?)',
           ).run(
             voiceChannel.id,
-            channel.kimakiDirectory,
+            channel.disundayDirectory,
             'voice',
-            channel.kimakiApp || null,
+            channel.disundayApp || null,
           )
         }
       }
@@ -853,11 +853,11 @@ function storeChannelDirectories({
  * Called at the end of startup to display available channels.
  */
 function showReadyMessage({
-  kimakiChannels,
+  disundayChannels,
   createdChannels,
   appId,
 }: {
-  kimakiChannels: { guild: Guild; channels: ChannelWithTags[] }[]
+  disundayChannels: { guild: Guild; channels: ChannelWithTags[] }[]
   createdChannels: { name: string; id: string; guildId: string }[]
   appId: string
 }): void {
@@ -870,13 +870,13 @@ function showReadyMessage({
 
   allChannels.push(...createdChannels)
 
-  kimakiChannels.forEach(({ guild, channels }) => {
+  disundayChannels.forEach(({ guild, channels }) => {
     channels.forEach((ch) => {
       allChannels.push({
         name: ch.name,
         id: ch.id,
         guildId: guild.id,
-        directory: ch.kimakiDirectory,
+        directory: ch.disundayDirectory,
       })
     })
   })
@@ -1213,7 +1213,7 @@ async function run({
   const discordClient = await createDiscordClient()
 
   const guilds: Guild[] = []
-  const kimakiChannels: { guild: Guild; channels: ChannelWithTags[] }[] = []
+  const disundayChannels: { guild: Guild; channels: ChannelWithTags[] }[] = []
   const createdChannels: { name: string; id: string; guildId: string }[] = []
 
   try {
@@ -1242,15 +1242,15 @@ async function run({
                   return
                 }
                 return guild.roles.create({
-                  name: 'Kimaki',
+                  name: 'Disunday',
                   position: 1, // Place at bottom so anyone with Manage Roles can assign it
                   reason:
-                    'Kimaki bot permission role - assign to users who can start sessions, send messages in threads, and use voice features',
+                    'Disunday bot permission role - assign to users who can start sessions, send messages in threads, and use voice features',
                 })
               })
               .then((role) => {
                 if (role) {
-                  cliLogger.info(`Created "Kimaki" role in ${guild.name}`)
+                  cliLogger.info(`Created "Disunday" role in ${guild.name}`)
                 }
               })
               .catch((error) => {
@@ -1260,19 +1260,19 @@ async function run({
               })
 
             const channels = await getChannelsWithDescriptions(guild)
-            const kimakiChans = channels.filter(
+            const disundayChans = channels.filter(
               (ch) =>
-                ch.kimakiDirectory && (!ch.kimakiApp || ch.kimakiApp === appId),
+                ch.disundayDirectory && (!ch.disundayApp || ch.disundayApp === appId),
             )
 
-            return { guild, channels: kimakiChans }
+            return { guild, channels: disundayChans }
           }),
         )
 
         // Collect results
         for (const result of guildResults) {
           if (result.channels.length > 0) {
-            kimakiChannels.push(result)
+            disundayChannels.push(result)
           }
         }
 
@@ -1297,19 +1297,19 @@ async function run({
   ).run(appId, token)
 
   // Store channel-directory mappings
-  storeChannelDirectories({ kimakiChannels, db })
+  storeChannelDirectories({ disundayChannels, db })
 
-  if (kimakiChannels.length > 0) {
-    const channelList = kimakiChannels
+  if (disundayChannels.length > 0) {
+    const channelList = disundayChannels
       .flatMap(({ guild, channels }) =>
         channels.map((ch) => {
           const appInfo =
-            ch.kimakiApp === appId
+            ch.disundayApp === appId
               ? ' (this bot)'
-              : ch.kimakiApp
-                ? ` (app: ${ch.kimakiApp})`
+              : ch.disundayApp
+                ? ` (app: ${ch.disundayApp})`
                 : ''
-          return `#${ch.name} in ${guild.name}: ${ch.kimakiDirectory}${appInfo}`
+          return `#${ch.name} in ${guild.name}: ${ch.disundayDirectory}${appInfo}`
         }),
       )
       .join('\n')
@@ -1327,7 +1327,7 @@ async function run({
     // Background: OpenCode init + slash command registration (non-blocking)
     void backgroundInit({ currentDir, token, appId })
 
-    showReadyMessage({ kimakiChannels, createdChannels, appId })
+    showReadyMessage({ disundayChannels, createdChannels, appId })
     outro('✨ Bot ready! Listening for messages...')
     return
   }
@@ -1378,10 +1378,10 @@ async function run({
 
   s.stop(`Found ${projects.length} OpenCode project(s)`)
 
-  const existingDirs = kimakiChannels.flatMap(({ channels }) =>
+  const existingDirs = disundayChannels.flatMap(({ channels }) =>
     channels
-      .filter((ch) => ch.kimakiDirectory && ch.kimakiApp === appId)
-      .map((ch) => ch.kimakiDirectory)
+      .filter((ch) => ch.disundayDirectory && ch.disundayApp === appId)
+      .map((ch) => ch.disundayDirectory)
       .filter(Boolean),
   )
 
@@ -1527,14 +1527,14 @@ async function run({
   await startDiscordBot({ token, appId, discordClient, useWorktrees })
   s.stop('Discord bot is running!')
 
-  showReadyMessage({ kimakiChannels, createdChannels, appId })
+  showReadyMessage({ disundayChannels, createdChannels, appId })
   outro(
     '✨ Setup complete! Listening for new messages... do not close this process.',
   )
 }
 
 cli
-  .command('', 'Set up and run the Kimaki Discord bot')
+  .command('', 'Set up and run the Disunday Discord bot')
   .option('--restart', 'Prompt for new credentials even if saved')
   .option(
     '--add-channels',
@@ -1595,7 +1595,7 @@ cli
           cliLogger.log(`Default verbosity: ${options.verbosity}`)
         }
 
-        await migrateFromKimaki()
+        await migrateFromLegacy()
 
         if (options.installUrl) {
           const db = getDatabase()
@@ -1779,7 +1779,7 @@ cli
 
         // Get bot token from env var or database
         const envToken =
-          process.env.DISUNDAY_BOT_TOKEN || process.env.KIMAKI_BOT_TOKEN
+          process.env.DISUNDAY_BOT_TOKEN || process.env.DISUNDAY_BOT_TOKEN
         let botToken: string | undefined
         let appId: string | undefined = optionAppId
 
@@ -1827,7 +1827,7 @@ cli
 
         if (!botToken) {
           cliLogger.error(
-            'No bot token found. Set KIMAKI_BOT_TOKEN env var or run `kimaki` first to set up.',
+            'No bot token found. Set DISUNDAY_BOT_TOKEN env var or run `disunday` first to set up.',
           )
           process.exit(EXIT_NO_RESTART)
         }
@@ -2022,7 +2022,7 @@ cli
 
         // Embed marker for auto-start sessions (unless --notify-only)
         // Bot checks for this embed footer to know it should start a session
-        const AUTO_START_MARKER = 'kimaki:start'
+        const AUTO_START_MARKER = 'disunday:start'
         const autoStartEmbed = notifyOnly
           ? undefined
           : [{ color: 0x2b2d31, footer: { text: AUTO_START_MARKER } }]
@@ -2201,7 +2201,7 @@ cli
 
         // Get bot token from env var or database
         const envToken =
-          process.env.DISUNDAY_BOT_TOKEN || process.env.KIMAKI_BOT_TOKEN
+          process.env.DISUNDAY_BOT_TOKEN || process.env.DISUNDAY_BOT_TOKEN
         let botToken: string | undefined
         let appId: string | undefined = options.appId
 

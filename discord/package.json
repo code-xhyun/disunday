@@ -14,7 +14,7 @@
     "register-commands": "tsx scripts/register-commands.ts",
     "format": "oxfmt src"
   },
-  "repository": "https://github.com/remorses/kimaki",
+  "repository": "https://github.com/code-xhyun/disunday",
   "bin": "bin.js",
   "files": [
     "dist",

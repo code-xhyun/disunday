@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import { getDatabase } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
-import { resolveTextChannel, getKimakiMetadata, sendThreadMessage } from '../discord-utils.js'
+import { resolveTextChannel, getDisundayMetadata, sendThreadMessage } from '../discord-utils.js'
 import { collectLastAssistantParts } from '../message-formatting.js'
 import { createLogger, LogPrefix } from '../logger.js'
 import * as errore from 'errore'
@@ -45,7 +45,7 @@ export async function handleForkCommand(interaction: ChatInputCommandInteraction
   }
 
   const textChannel = await resolveTextChannel(channel as ThreadChannel)
-  const { projectDirectory: directory } = getKimakiMetadata(textChannel)
+  const { projectDirectory: directory } = getDisundayMetadata(textChannel)
 
   if (!directory) {
     await interaction.reply({

@@ -4,7 +4,7 @@
 
 import { ChatInputCommandInteraction, ChannelType, type TextChannel } from 'discord.js'
 import { getChannelWorktreesEnabled, setChannelWorktreesEnabled } from '../database.js'
-import { getKimakiMetadata } from '../discord-utils.js'
+import { getDisundayMetadata } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
 
 const worktreeSettingsLogger = createLogger(LogPrefix.WORKTREE)
@@ -33,7 +33,7 @@ export async function handleToggleWorktreesCommand({
   }
 
   const textChannel = channel as TextChannel
-  const metadata = getKimakiMetadata(textChannel)
+  const metadata = getDisundayMetadata(textChannel)
 
   if (metadata.channelAppId && metadata.channelAppId !== appId) {
     await command.reply({

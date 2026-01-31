@@ -1,6 +1,6 @@
 // Core Discord bot module that handles message events and bot lifecycle.
 // Bridges Discord messages to OpenCode sessions, manages voice connections,
-// and orchestrates the main event loop for the Kimaki bot.
+// and orchestrates the main event loop for the Disunday bot.
 
 import {
   getDatabase,
@@ -28,8 +28,8 @@ import {
 import { getOpencodeSystemMessage } from './system-message.js'
 import { getFileAttachments, getTextAttachments } from './message-formatting.js'
 import {
-  ensureKimakiCategory,
-  ensureKimakiAudioCategory,
+  ensureDisundayCategory,
+  ensureDisundayAudioCategory,
   createProjectChannels,
   getChannelsWithDescriptions,
   type ChannelWithTags,
@@ -58,8 +58,8 @@ export {
 } from './discord-utils.js'
 export { getOpencodeSystemMessage } from './system-message.js'
 export {
-  ensureKimakiCategory,
-  ensureKimakiAudioCategory,
+  ensureDisundayCategory,
+  ensureDisundayAudioCategory,
   createProjectChannels,
   getChannelsWithDescriptions,
 } from './channel-management.js'
@@ -219,18 +219,18 @@ export async function startDiscordBot({
       discordLogger.log(`${guild.name} (${guild.id})`)
 
       const channels = await getChannelsWithDescriptions(guild)
-      const kimakiChannels = channels.filter(
+      const disundayChannels = channels.filter(
         (ch) =>
-          ch.kimakiDirectory &&
-          (!ch.kimakiApp || ch.kimakiApp === currentAppId),
+          ch.disundayDirectory &&
+          (!ch.disundayApp || ch.disundayApp === currentAppId),
       )
 
-      if (kimakiChannels.length > 0) {
+      if (disundayChannels.length > 0) {
         discordLogger.log(
-          `  Found ${kimakiChannels.length} channel(s) for this bot:`,
+          `  Found ${disundayChannels.length} channel(s) for this bot:`,
         )
-        for (const channel of kimakiChannels) {
-          discordLogger.log(`  - #${channel.name}: ${channel.kimakiDirectory}`)
+        for (const channel of disundayChannels) {
+          discordLogger.log(`  - #${channel.name}: ${channel.disundayDirectory}`)
         }
       } else {
         discordLogger.log(`  No channels for this bot`)
@@ -251,10 +251,10 @@ export async function startDiscordBot({
       const channels = await getChannelsWithDescriptions(guild)
       for (const ch of channels) {
         if (
-          ch.kimakiDirectory &&
-          (!ch.kimakiApp || ch.kimakiApp === currentAppId)
+          ch.disundayDirectory &&
+          (!ch.disundayApp || ch.disundayApp === currentAppId)
         ) {
-          projectDirectories.add(ch.kimakiDirectory)
+          projectDirectories.add(ch.disundayDirectory)
         }
       }
     }
@@ -586,7 +586,7 @@ export async function startDiscordBot({
         }
 
         discordLogger.log(
-          `DIRECTORY: Found kimaki.directory: ${projectDirectory}`,
+          `DIRECTORY: Found disunday.directory: ${projectDirectory}`,
         )
         if (channelAppId) {
           discordLogger.log(`APP: Channel app ID: ${channelAppId}`)
@@ -747,9 +747,9 @@ export async function startDiscordBot({
     }
   })
 
-  // Handle bot-initiated threads created by `kimaki send` (without --notify-only)
+  // Handle bot-initiated threads created by `disunday send` (without --notify-only)
   // Uses embed marker instead of database to avoid race conditions
-  const AUTO_START_MARKER = 'kimaki:start'
+  const AUTO_START_MARKER = 'disunday:start'
   discordClient.on(Events.ThreadCreate, async (thread, newlyCreated) => {
     try {
       if (!newlyCreated) {

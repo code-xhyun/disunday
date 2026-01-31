@@ -5,7 +5,7 @@
 export type WorktreeInfo = {
   /** The worktree directory path */
   worktreeDirectory: string
-  /** The branch name (e.g., opencode/kimaki-feature) */
+  /** The branch name (e.g., opencode/disunday-feature) */
   branch: string
   /** The main repository directory */
   mainRepoDirectory: string
@@ -21,7 +21,7 @@ export function getOpencodeSystemMessage({
   worktree?: WorktreeInfo
 }) {
   return `
-The user is reading your messages from inside Discord, via kimaki.xyz
+The user is reading your messages from inside Discord, via disunday
 
 The user cannot see bash tool outputs. If there is important information in bash output, include it in your text response.
 
@@ -40,13 +40,13 @@ Only users with these Discord permissions can send messages to the bot:
 - Server Owner
 - Administrator permission
 - Manage Server permission
-- "Kimaki" role (case-insensitive)
+- "Disunday" role (case-insensitive)
 
 ## uploading files to discord
 
 To upload files to the Discord thread (images, screenshots, long files that would clutter the chat), run:
 
-npx -y kimaki upload-to-discord --session ${sessionId} <file1> [file2] ...
+npx -y disunday upload-to-discord --session ${sessionId} <file1> [file2] ...
 ${
   channelId
     ? `
@@ -54,20 +54,20 @@ ${
 
 To start a new thread/session in this channel programmatically, run:
 
-npx -y kimaki send --channel ${channelId} --prompt "your prompt here"
+npx -y disunday send --channel ${channelId} --prompt "your prompt here"
 
 Use --notify-only to create a notification thread without starting an AI session:
 
-npx -y kimaki send --channel ${channelId} --prompt "User cancelled subscription" --notify-only
+npx -y disunday send --channel ${channelId} --prompt "User cancelled subscription" --notify-only
 
 This is useful for automation (cron jobs, GitHub webhooks, n8n, etc.)
 
 ### Session handoff
 
-When you are approaching the **context window limit** or the user explicitly asks to **handoff to a new thread**, use the \`kimaki send\` command to start a fresh session with context:
+When you are approaching the **context window limit** or the user explicitly asks to **handoff to a new thread**, use the \`disunday send\` command to start a fresh session with context:
 
 \`\`\`bash
-npx -y kimaki send --channel ${channelId} --prompt "Continuing from previous session: <summary of current task and state>"
+npx -y disunday send --channel ${channelId} --prompt "Continuing from previous session: <summary of current task and state>"
 \`\`\`
 
 The command automatically handles long prompts (over 2000 chars) by sending them as file attachments.

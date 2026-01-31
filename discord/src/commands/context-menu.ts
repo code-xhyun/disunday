@@ -6,7 +6,7 @@ import {
 } from 'discord.js'
 import * as errore from 'errore'
 import { getDatabase } from '../database.js'
-import { getKimakiMetadata, resolveTextChannel, SILENT_MESSAGE_FLAGS } from '../discord-utils.js'
+import { getDisundayMetadata, resolveTextChannel, SILENT_MESSAGE_FLAGS } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
 import { handleOpencodeSession } from '../session-handler.js'
 
@@ -63,7 +63,7 @@ export async function handleRetryContextMenu({
   }
 
   const textChannel = await resolveTextChannel(thread)
-  const { projectDirectory } = getKimakiMetadata(textChannel)
+  const { projectDirectory } = getDisundayMetadata(textChannel)
 
   if (!projectDirectory) {
     await interaction.reply({
@@ -127,7 +127,7 @@ export async function handleForkContextMenu({
   const message = interaction.targetMessage
 
   const textChannel = await resolveTextChannel(thread)
-  const { projectDirectory } = getKimakiMetadata(textChannel)
+  const { projectDirectory } = getDisundayMetadata(textChannel)
 
   if (!projectDirectory) {
     await interaction.reply({

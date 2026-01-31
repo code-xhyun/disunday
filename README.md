@@ -221,9 +221,9 @@ Each instance has its own:
 
 This lets you run completely isolated bots on the same machine, each with their own Discord app and configuration.
 
-### Migration from Kimaki
+### Migration from Legacy
 
-If you previously used Kimaki, Disunday automatically detects existing data at `~/.kimaki` on first run and offers to migrate it to `~/.disunday`.
+If you previously used the legacy version, Disunday automatically detects existing data at `~/.kimaki` on first run and offers to migrate it to `~/.disunday`.
 
 ## Multiple Discord Servers
 
@@ -597,4 +597,4 @@ Or use these Discord commands to change settings per channel/session:
 
 ## Credits
 
-Inspired by [kimaki](https://github.com/remorses/kimaki)
+Originally forked from [kimaki](https://github.com/remorses/kimaki)
