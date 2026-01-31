@@ -46,14 +46,9 @@ I want to set up Disunday, a Discord bot for AI coding sessions. Please help me 
 3. Start: `cd discord && pnpm dev`
 
 ## Troubleshooting Installation
-- If `pnpm install` fails with dependency errors:
-  `rm -rf node_modules pnpm-lock.yaml && pnpm install`
-- If `pnpm: command not found`:
-  `npm install -g pnpm` or `corepack enable`
-- If permission errors on macOS/Linux:
-  `sudo chown -R $(whoami) ~/.pnpm-store`
-- If node version error:
-  Use nvm: `nvm install 20 && nvm use 20`
+- If `pnpm: command not found`: `npm install -g pnpm` or `corepack enable`
+- If node version error: Use nvm `nvm install 20 && nvm use 20`
+- If `pnpm install` fails: Check error message and fix the specific issue
 
 The CLI will guide me through Discord bot creation interactively.
 ```
