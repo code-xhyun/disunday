@@ -1,11 +1,37 @@
 {
   "name": "disunday",
-  "module": "index.ts",
   "type": "module",
-  "version": "0.4.52",
+  "version": "0.0.0",
+  "description": "Discord bot for controlling OpenCode coding sessions",
+  "author": "code-xhyun",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/code-xhyun/disunday.git",
+    "directory": "discord"
+  },
+  "homepage": "https://github.com/code-xhyun/disunday#readme",
+  "bugs": {
+    "url": "https://github.com/code-xhyun/disunday/issues"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "opencode",
+    "ai",
+    "coding",
+    "agent"
+  ],
+  "bin": {
+    "disunday": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsx --env-file .env src/cli.ts",
-    "prepublishOnly": "pnpm tsc",
+    "build": "tsc",
+    "prepublishOnly": "pnpm build",
     "dev:bun": "DEBUG=1 bun --env-file .env src/cli.ts",
     "watch": "tsx scripts/watch-session.ts",
     "test:events": "tsx test-events.ts",
@@ -14,13 +40,6 @@
     "register-commands": "tsx scripts/register-commands.ts",
     "format": "oxfmt src"
   },
-  "repository": "https://github.com/code-xhyun/disunday",
-  "bin": "bin.js",
-  "files": [
-    "dist",
-    "src",
-    "bin.js"
-  ],
   "devDependencies": {
     "@opencode-ai/plugin": "^1.1.12",
     "@types/better-sqlite3": "^7.6.13",

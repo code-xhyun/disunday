@@ -11,14 +11,22 @@ Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) 
 
 ## Quick Start
 
+```bash
+npx disunday
+```
+
+The CLI will guide you through:
+1. Creating a Discord bot at [discord.com/developers](https://discord.com/developers/applications)
+2. Enabling required intents (Message Content, Server Members)
+3. Installing the bot to your server
+4. Linking project directories
+
+### AI Setup Prompt
+
 Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
 
 ```
-Set up Disunday Discord bot for me:
-
-1. Clone https://github.com/code-xhyun/disunday
-2. Run `pnpm install` in root directory
-3. Run `cd discord && pnpm dev` to start
+Set up Disunday Discord bot for me by running `npx disunday`.
 
 The CLI will guide me through Discord bot setup, but help me with:
 - Creating a Discord bot at https://discord.com/developers/applications
@@ -26,36 +34,12 @@ The CLI will guide me through Discord bot setup, but help me with:
 - Generating invite URL with Administrator permissions
 - Getting the bot token
 
-If any errors occur during installation, help me troubleshoot.
+If any errors occur, help me troubleshoot.
 ```
 
-### Detailed AI Setup Prompt
+### Development Installation
 
-For step-by-step guidance, use this expanded prompt:
-
-```
-I want to set up Disunday, a Discord bot for AI coding sessions. Please help me install it:
-
-## Prerequisites Check
-1. Check Node.js version: `node --version` (need 18+)
-   - If not installed or outdated: install from https://nodejs.org or use nvm
-2. Check pnpm: `pnpm --version`
-   - If not installed: `npm install -g pnpm`
-
-## Installation
-1. Clone: `git clone https://github.com/code-xhyun/disunday`
-2. Install dependencies: `cd disunday && pnpm install`
-3. Start: `cd discord && pnpm dev`
-
-## Troubleshooting Installation
-- If `pnpm: command not found`: `npm install -g pnpm` or `corepack enable`
-- If node version error: Use nvm `nvm install 20 && nvm use 20`
-- If `pnpm install` fails: Check error message and fix the specific issue
-
-The CLI will guide me through Discord bot creation interactively.
-```
-
-### Manual Installation
+For contributing or development:
 
 ```bash
 git clone https://github.com/code-xhyun/disunday
@@ -74,31 +58,14 @@ Disunday connects Discord to OpenCode, a coding agent similar to Claude Code. Ea
 
 ## Installation Options
 
-| Method                                 | Description              | Recommended For           |
-| -------------------------------------- | ------------------------ | ------------------------- |
-| [Manual Install](#manual-installation) | `git clone` + `pnpm dev` | Development, testing      |
-| [Auto-Start](#auto-start-on-boot)      | Auto-run on login        | Always-on personal PC     |
-| [Docker](#docker)                      | Run in container         | 24/7 server, VPS deploy   |
-
-- Use any tools you've configured
+| Method                                      | Description              | Recommended For           |
+| ------------------------------------------- | ------------------------ | ------------------------- |
+| [npx disunday](#quick-start)                | One command install      | Most users                |
+| [Development Install](#development-installation) | `git clone` + `pnpm dev` | Contributors              |
+| [Auto-Start](#auto-start-on-boot)           | Auto-run on login        | Always-on personal PC     |
+| [Docker](#docker)                           | Run in container         | 24/7 server, VPS deploy   |
 
 Think of it as texting your codebase. You describe what you want, the AI does it.
-
-## Installation & Setup
-
-Run the CLI and follow the interactive prompts:
-
-```bash
-cd discord && pnpm dev
-```
-
-The setup wizard will:
-
-1. **Create a Discord Bot** - Walk you through creating a bot at [discord.com/developers](https://discord.com/developers/applications)
-2. **Configure Bot Settings** - Enable required intents (Message Content, Server Members)
-3. **Install to Your Server** - Generate an invite link with proper permissions
-4. **Select Projects** - Choose which OpenCode projects to add as Discord channels
-5. **Gemini API Key (Optional)** - For voice message transcription
 
 Keep the CLI running. It's the bridge between Discord and your machine.
 
