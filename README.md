@@ -333,7 +333,7 @@ Work seamlessly between Discord and terminal:
 
 Use `/queue <message>` to queue a follow-up message while the AI is still responding. The queued message sends automatically when the current response finishes. If no response is in progress, it sends immediately. Useful for chaining tasks without waiting.
 
-### Scheduled Messages
+### Scheduled Messages (Beta)
 
 Schedule prompts to run at a specific time:
 
@@ -375,7 +375,7 @@ When a hub channel is configured, session completions send notifications:
 🧵 thread-name (link)
 ```
 
-### Reaction Commands
+### Reaction Commands (Beta)
 
 React to messages in threads to trigger quick actions:
 
@@ -387,14 +387,14 @@ React to messages in threads to trigger quick actions:
 
 Reactions are automatically removed after the action is triggered.
 
-### Context Menu Commands
+### Context Menu Commands (Beta)
 
 Right-click on any message in a session thread to access:
 
 - **Retry this prompt** - Re-run the selected user message
 - **Fork from here** - Create a new session branching from the selected AI response
 
-### Progress Indicator
+### Progress Indicator (Beta)
 
 During long sessions, periodic updates show elapsed time:
 
@@ -435,9 +435,9 @@ Just send a message in any channel linked to a project. Disunday handles the res
 | `/sync`                      | Sync recent terminal activity to Discord thread                            |
 | `/queue <message>`           | Queue a message to send after current response finishes                    |
 | `/clear-queue`               | Clear all queued messages in this thread                                   |
-| `/schedule add`              | Schedule a message to run at a specific time                               |
-| `/schedule list`             | List pending schedules in this channel                                     |
-| `/schedule cancel <id>`      | Cancel a scheduled message                                                 |
+| `/schedule add` *(Beta)*     | Schedule a message to run at a specific time                               |
+| `/schedule list` *(Beta)*    | List pending schedules in this channel                                     |
+| `/schedule cancel <id>` *(Beta)* | Cancel a scheduled message                                             |
 | `/undo`                      | Undo the last assistant message (revert file changes)                      |
 | `/redo`                      | Redo the last undone message                                               |
 | `/run <command>`             | Execute a terminal command                                                 |
