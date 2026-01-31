@@ -374,7 +374,7 @@ When a hub channel is configured, session completions send notifications:
 
 ### Reaction Commands (Beta)
 
-React to messages in threads to trigger quick actions:
+Add emoji reactions to messages in threads to trigger quick actions:
 
 | Reaction | Action |
 | -------- | ------ |
@@ -382,14 +382,16 @@ React to messages in threads to trigger quick actions:
 | ❌ | Abort the current session |
 | 📌 | Pin the message |
 
-Reactions are automatically removed after the action is triggered.
+To use: manually add the emoji reaction to any message in the thread. The bot detects the reaction and performs the action. Reactions are automatically removed after the action is triggered.
 
 ### Context Menu Commands (Beta)
 
-Right-click on any message in a session thread to access:
+Right-click (or long-press on mobile) on any message in a session thread, then select **Apps** to access:
 
 - **Retry this prompt** - Re-run the selected user message
 - **Fork from here** - Create a new session branching from the selected AI response
+
+Note: Context menu commands may take up to 1 hour to appear after bot restart due to Discord's global command sync.
 
 ### Progress Indicator (Beta)
 
