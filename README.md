@@ -46,11 +46,11 @@ Disunday connects Discord to OpenCode, a coding agent similar to Claude Code. Ea
 
 ## Installation Options
 
-| 방식                                   | 설명                     | 추천 상황                |
-| -------------------------------------- | ------------------------ | ------------------------ |
-| [Manual Install](#manual-installation) | `git clone` + `pnpm dev` | 개발, 테스트             |
-| [Auto-Start](#auto-start-on-boot)      | 로그인 시 자동 실행      | 내 PC에서 상시 운영      |
-| [Docker](#docker)                      | 컨테이너로 실행          | 서버 24/7 운영, VPS 배포 |
+| Method                                 | Description              | Recommended For           |
+| -------------------------------------- | ------------------------ | ------------------------- |
+| [Manual Install](#manual-installation) | `git clone` + `pnpm dev` | Development, testing      |
+| [Auto-Start](#auto-start-on-boot)      | Auto-run on login        | Always-on personal PC     |
+| [Docker](#docker)                      | Run in container         | 24/7 server, VPS deploy   |
 
 - Use any tools you've configured
 
@@ -109,13 +109,13 @@ journalctl --user -u disunday -f   # Logs
 
 ### When to Use Docker?
 
-| 상황                      | 추천 방식                  |
-| ------------------------- | -------------------------- |
-| 내 PC에서 개발하면서 사용 | **로컬 설치** (`pnpm dev`) |
-| 컴퓨터 켜둘 때만 봇 실행  | **Auto-Start 스크립트**    |
-| 서버에서 24/7 운영        | **Docker**                 |
-| Node.js 설치 없이 실행    | **Docker**                 |
-| VPS/클라우드 서버 배포    | **Docker**                 |
+| Situation                      | Recommended                |
+| ------------------------------ | -------------------------- |
+| Developing on my PC            | **Local install** (`pnpm dev`) |
+| Run bot only when PC is on     | **Auto-Start script**      |
+| 24/7 server operation          | **Docker**                 |
+| Run without Node.js installed  | **Docker**                 |
+| VPS/cloud server deployment    | **Docker**                 |
 
 ### Quick Start
 
