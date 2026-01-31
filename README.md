@@ -32,42 +32,30 @@ If any errors occur during installation, help me troubleshoot.
 For step-by-step guidance, use this expanded prompt:
 
 ```
-I want to set up Disunday, a Discord bot for AI coding sessions. Please help me through each step:
+I want to set up Disunday, a Discord bot for AI coding sessions. Please help me install it:
 
-## Prerequisites
-- Check if pnpm is installed (`pnpm --version`). If not, install it with `npm install -g pnpm`
-- Check if I have Node.js 18+ (`node --version`)
+## Prerequisites Check
+1. Check Node.js version: `node --version` (need 18+)
+   - If not installed or outdated: install from https://nodejs.org or use nvm
+2. Check pnpm: `pnpm --version`
+   - If not installed: `npm install -g pnpm`
 
 ## Installation
-1. Clone the repository: `git clone https://github.com/code-xhyun/disunday`
+1. Clone: `git clone https://github.com/code-xhyun/disunday`
 2. Install dependencies: `cd disunday && pnpm install`
-3. Start the bot: `cd discord && pnpm dev`
+3. Start: `cd discord && pnpm dev`
 
-## Discord Developer Portal Setup
-When the CLI asks for a bot token, guide me through:
+## Troubleshooting Installation
+- If `pnpm install` fails with dependency errors:
+  `rm -rf node_modules pnpm-lock.yaml && pnpm install`
+- If `pnpm: command not found`:
+  `npm install -g pnpm` or `corepack enable`
+- If permission errors on macOS/Linux:
+  `sudo chown -R $(whoami) ~/.pnpm-store`
+- If node version error:
+  Use nvm: `nvm install 20 && nvm use 20`
 
-1. Go to https://discord.com/developers/applications
-2. Click "New Application" → name it "Disunday" (or any name)
-3. Go to "Bot" section in the left sidebar
-4. Click "Reset Token" and copy the token (save it securely!)
-5. Enable these settings under "Privileged Gateway Intents":
-   - MESSAGE CONTENT INTENT ✓
-   - SERVER MEMBERS INTENT ✓
-6. Go to "OAuth2" → "URL Generator"
-7. Select scopes: bot, applications.commands
-8. Select permissions: Administrator
-9. Copy the generated URL and open it to invite the bot to your server
-
-## Troubleshooting
-- If pnpm install fails: try `rm -rf node_modules pnpm-lock.yaml && pnpm install`
-- If bot token is invalid: regenerate it in Discord Developer Portal
-- If bot doesn't respond: check that MESSAGE CONTENT INTENT is enabled
-- If commands don't appear: wait 1-2 minutes for Discord to sync, or try `/help`
-
-After setup, I should be able to:
-- See the bot online in my Discord server
-- Use /add-project to link a project directory
-- Send messages in the project channel to start AI sessions
+The CLI will guide me through Discord bot creation interactively.
 ```
 
 ### Manual Installation
