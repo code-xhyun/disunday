@@ -7,6 +7,8 @@
 
 Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) coding sessions from Discord. Send a message in a Discord channel → an AI agent edits code on your machine.
 
+> **Fun fact:** This project is being developed using Disunday itself - lying on a couch, controlling OpenCode through Discord on a phone.
+
 ## Quick Start
 
 Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
@@ -221,9 +223,21 @@ Each instance has its own:
 
 This lets you run completely isolated bots on the same machine, each with their own Discord app and configuration.
 
-### Migration from Legacy
+### Migration from Kimaki
 
-If you previously used the legacy version, Disunday automatically detects existing data at `~/.kimaki` on first run and offers to migrate it to `~/.disunday`.
+If you previously used [Kimaki](https://github.com/remorses/kimaki), Disunday automatically detects existing data at `~/.kimaki` on first run and offers to migrate it to `~/.disunday`.
+
+**What gets migrated:**
+- Bot token and credentials
+- Channel-to-directory mappings
+- API keys (Gemini, etc.)
+
+**Manual migration (if needed):**
+```bash
+cp -r ~/.kimaki ~/.disunday
+```
+
+After migration, your existing Discord channels will continue to work with Disunday.
 
 ## Multiple Discord Servers
 
