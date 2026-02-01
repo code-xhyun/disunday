@@ -360,6 +360,26 @@ Right-click (or long-press on mobile) on any message in a session thread, then s
 
 Note: Context menu commands may take up to 1 hour to appear after bot restart due to Discord's global command sync.
 
+### Error Recovery Buttons
+
+When a session encounters an error, interactive buttons appear:
+
+| Button | Action |
+| ------ | ------ |
+| 🔄 Retry | Re-run the last user prompt |
+| Dismiss | Remove the buttons |
+
+This makes it easy to retry after transient failures (API timeouts, rate limits) without retyping your prompt.
+
+### Update Check
+
+On startup, the bot checks npm for newer versions. If an update is available, you'll see:
+
+```
+🔔 Update available: 1.0.1 → 1.0.2
+   Run: npx disunday@latest
+```
+
 ### Progress Indicator (Beta)
 
 During long sessions, periodic updates show elapsed time:
