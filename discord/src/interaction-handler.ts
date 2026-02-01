@@ -310,6 +310,21 @@ export function registerInteractionHandler({
           return
         }
 
+        if (interaction.isButton()) {
+          const customId = interaction.customId
+
+          if (customId.startsWith('retry_error:')) {
+            await handleRetryErrorButton({ interaction, appId })
+            return
+          }
+
+          if (customId.startsWith('dismiss_error:')) {
+            await handleDismissErrorButton(interaction)
+            return
+          }
+          return
+        }
+
         if (interaction.isStringSelectMenu()) {
           const customId = interaction.customId
 
@@ -406,4 +421,75 @@ export function registerInteractionHandler({
       }
     },
   )
+}
+
+async function handleRetryErrorButton({
+  interaction,
+  appId,
+}: {
+  interaction: Interaction
+  appId: string
+}): Promise<void> {
+  if (!interaction.isButton()) {
+    return
+  }
+
+  const thread = interaction.channel
+  if (!thread || !thread.isThread()) {
+    await interaction.reply({
+      content: 'This button only works in session threads.',
+      ephemeral: true,
+    })
+    return
+  }
+
+  await interaction.deferUpdate()
+
+  await interaction.message.edit({
+    content: interaction.message.content,
+    components: [],
+  })
+
+  const messages = await thread.messages.fetch({ limit: 50 })
+  const userMessages = messages.filter((m) => !m.author.bot && m.content?.trim())
+  const lastUserMsg = userMessages.first()
+
+  if (!lastUserMsg) {
+    await thread.send('❌ No previous message to retry')
+    return
+  }
+
+  const { getDisundayMetadata, resolveTextChannel } = await import('./discord-utils.js')
+  const textChannel = await resolveTextChannel(thread)
+  const { projectDirectory } = getDisundayMetadata(textChannel)
+
+  if (!projectDirectory) {
+    await thread.send('❌ Could not find project directory for this channel')
+    return
+  }
+
+  const prompt = lastUserMsg.content
+  await thread.send(`🔄 Retrying: "${prompt.slice(0, 50)}${prompt.length > 50 ? '...' : ''}"`)
+
+  const { handleOpencodeSession } = await import('./session-handler.js')
+  await handleOpencodeSession({
+    prompt,
+    thread,
+    projectDirectory,
+  })
+}
+
+async function handleDismissErrorButton(
+  interaction: Interaction,
+): Promise<void> {
+  if (!interaction.isButton()) {
+    return
+  }
+
+  await interaction.deferUpdate()
+
+  await interaction.message.edit({
+    content: interaction.message.content,
+    components: [],
+  })
 }

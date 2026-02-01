@@ -8,7 +8,13 @@ import type {
   QuestionRequest,
 } from '@opencode-ai/sdk/v2'
 import type { DiscordFileAttachment } from './message-formatting.js'
-import type { Message, ThreadChannel } from 'discord.js'
+import {
+  type Message,
+  type ThreadChannel,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+} from 'discord.js'
 import prettyMilliseconds from 'pretty-ms'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -1232,10 +1238,27 @@ export async function handleOpencodeSession({
 
       const errorMessage = error?.data?.message || 'Unknown error'
       sessionLogger.error(`Sending error to thread: ${errorMessage}`)
-      await sendThreadMessage(
-        thread,
-        `✗ opencode session error: ${errorMessage}`,
+
+      const retryButton = new ButtonBuilder()
+        .setCustomId(`retry_error:${thread.id}`)
+        .setLabel('Retry')
+        .setEmoji('🔄')
+        .setStyle(ButtonStyle.Primary)
+
+      const dismissButton = new ButtonBuilder()
+        .setCustomId(`dismiss_error:${thread.id}`)
+        .setLabel('Dismiss')
+        .setStyle(ButtonStyle.Secondary)
+
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        retryButton,
+        dismissButton,
       )
+
+      await thread.send({
+        content: `✗ opencode session error: ${errorMessage}`,
+        components: [row],
+      })
 
       if (!originalMessage) {
         return
