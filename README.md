@@ -1,6 +1,6 @@
 <div align='center'>
     <br/>
-    <img src="assets/logo.png" alt="disunday" width="480" />
+    <img src="https://raw.githubusercontent.com/code-xhyun/disunday/main/assets/logo.png" alt="disunday" width="480" />
     <br/>
     <br/>
 </div>
