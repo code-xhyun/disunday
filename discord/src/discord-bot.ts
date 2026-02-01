@@ -92,6 +92,35 @@ setGlobalDispatcher(
 const discordLogger = createLogger(LogPrefix.DISCORD)
 const voiceLogger = createLogger(LogPrefix.VOICE)
 
+async function checkForUpdates(): Promise<{
+  currentVersion: string
+  latestVersion: string
+  updateAvailable: boolean
+} | null> {
+  try {
+    const packageJsonPath = new URL('../package.json', import.meta.url)
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+    const currentVersion = packageJson.version || '0.0.0'
+
+    const response = await fetch('https://registry.npmjs.org/disunday/latest', {
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = (await response.json()) as { version?: string }
+    const latestVersion = data.version || currentVersion
+
+    const updateAvailable = latestVersion !== currentVersion && currentVersion !== '0.0.0'
+
+    return { currentVersion, latestVersion, updateAvailable }
+  } catch {
+    return null
+  }
+}
+
 function prefixWithDiscordUser({
   username,
   prompt,
@@ -245,6 +274,18 @@ export async function startDiscordBot({
     registerVoiceStateHandler({ discordClient: c, appId: currentAppId })
     registerReactionHandler({ discordClient: c, appId: currentAppId })
     startScheduler(c)
+
+    const updateInfo = await checkForUpdates()
+    if (updateInfo) {
+      if (updateInfo.updateAvailable) {
+        discordLogger.log(
+          `[UPDATE] New version available: v${updateInfo.latestVersion} (current: v${updateInfo.currentVersion})`,
+        )
+        discordLogger.log(`[UPDATE] Run 'npx disunday@latest' to update`)
+      } else {
+        discordLogger.log(`[VERSION] Running v${updateInfo.currentVersion} (latest)`)
+      }
+    }
 
     const projectDirectories = new Set<string>()
     for (const guild of c.guilds.cache.values()) {
