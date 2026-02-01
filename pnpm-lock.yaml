@@ -73,8 +73,8 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3
       errore:
-        specifier: workspace:^
-        version: link:../errore
+        specifier: ^0.10.0
+        version: 0.10.0
       glob:
         specifier: ^13.0.0
         version: 13.0.0
@@ -1065,6 +1065,9 @@ packages:
   entities@6.0.1:
     resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
     engines: {node: '>=0.12'}
+
+  errore@0.10.0:
+    resolution: {integrity: sha512-OAH0yAXUj6h24JriKMcHLfV8WOWZx8SOCU9xvxMkxgFbWtpCfff58lpit5gQknA2I0mf6VSG35pC3cBY0p9b0Q==}
 
   es-module-lexer@1.7.0:
     resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
@@ -2658,6 +2661,8 @@ snapshots:
   entities@4.5.0: {}
 
   entities@6.0.1: {}
+
+  errore@0.10.0: {}
 
   es-module-lexer@1.7.0: {}
 
