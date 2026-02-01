@@ -1519,6 +1519,11 @@ export async function handleOpencodeSession({
 
     try {
       for await (const event of events) {
+        // Log all events for debugging
+        if (event.type !== 'message.updated' && event.type !== 'message.part.updated') {
+          sessionLogger.log(`[EVENT] type=${event.type} sessionId=${session.id}`)
+        }
+
         switch (event.type) {
           case 'message.updated':
             await handleMessageUpdated(event.properties.info)
@@ -1537,6 +1542,7 @@ export async function handleOpencodeSession({
             handlePermissionReplied(event.properties)
             break
           case 'question.asked':
+            sessionLogger.log(`[QUESTION.ASKED] Received question event: ${JSON.stringify(event.properties).slice(0, 500)}`)
             await handleQuestionAsked(event.properties)
             break
           case 'session.idle':
@@ -1546,6 +1552,7 @@ export async function handleOpencodeSession({
             await handleSessionStatus(event.properties)
             break
           default:
+            sessionLogger.log(`[EVENT] Unknown event type: ${event.type}`)
             break
         }
       }
