@@ -12,8 +12,13 @@ Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) 
 ## Quick Start
 
 ```bash
-npx disunday
+git clone https://github.com/code-xhyun/disunday
+cd disunday
+pnpm install
+cd discord && pnpm dev
 ```
+
+> **Coming Soon:** `npx disunday` - One command installation (npm release in progress)
 
 The CLI will guide you through:
 1. Creating a Discord bot at [discord.com/developers](https://discord.com/developers/applications)
@@ -26,7 +31,11 @@ The CLI will guide you through:
 Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
 
 ```
-Set up Disunday Discord bot for me by running `npx disunday`.
+Set up Disunday Discord bot for me:
+
+1. Clone https://github.com/code-xhyun/disunday
+2. Run `pnpm install` in root directory
+3. Run `cd discord && pnpm dev` to start
 
 The CLI will guide me through Discord bot setup, but help me with:
 - Creating a Discord bot at https://discord.com/developers/applications
@@ -35,17 +44,6 @@ The CLI will guide me through Discord bot setup, but help me with:
 - Getting the bot token
 
 If any errors occur, help me troubleshoot.
-```
-
-### Development Installation
-
-For contributing or development:
-
-```bash
-git clone https://github.com/code-xhyun/disunday
-cd disunday
-pnpm install
-cd discord && pnpm dev
 ```
 
 ## What is Disunday?
@@ -60,8 +58,8 @@ Disunday connects Discord to OpenCode, a coding agent similar to Claude Code. Ea
 
 | Method                                      | Description              | Recommended For           |
 | ------------------------------------------- | ------------------------ | ------------------------- |
-| [npx disunday](#quick-start)                | One command install      | Most users                |
-| [Development Install](#development-installation) | `git clone` + `pnpm dev` | Contributors              |
+| [Quick Start](#quick-start)                 | `git clone` + `pnpm dev` | Most users                |
+| npx disunday *(coming soon)*                | One command install      | After npm release         |
 | [Auto-Start](#auto-start-on-boot)           | Auto-run on login        | Always-on personal PC     |
 | [Docker](#docker)                           | Run in container         | 24/7 server, VPS deploy   |
 
