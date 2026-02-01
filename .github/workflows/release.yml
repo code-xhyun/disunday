@@ -35,6 +35,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        working-directory: .
 
       - name: Set version from release tag
         run: |
