@@ -10,6 +10,8 @@
 
 Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) coding sessions from Discord. Send a message in a Discord channel → an AI agent edits code on your machine.
 
+> **Using Claude Code?** Check out [sleep-code](https://github.com/cheeselemon/sleep-code) - a sibling project that brings the same Discord-controlled coding experience to Claude Code.
+
 > **Fun fact:** This project is being developed using Disunday itself - lying on a couch, controlling OpenCode through Discord on a phone.
 
 ## Quick Start
