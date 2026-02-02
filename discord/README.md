@@ -345,7 +345,7 @@ When a hub channel is configured, session completions send notifications:
 🧵 thread-name (link)
 ```
 
-### Reaction Commands (Beta)
+### Reaction Commands
 
 Add emoji reactions to messages in threads to trigger quick actions:
 
@@ -357,7 +357,7 @@ Add emoji reactions to messages in threads to trigger quick actions:
 
 To use: manually add the emoji reaction to any message in the thread. The bot detects the reaction and performs the action. Reactions are automatically removed after the action is triggered.
 
-### Context Menu Commands (Beta)
+### Context Menu Commands
 
 Right-click (or long-press on mobile) on any message in a session thread, then select **Apps** to access:
 
@@ -386,7 +386,7 @@ On startup, the bot checks npm for newer versions. If an update is available, yo
    Run: npx disunday@latest
 ```
 
-### Progress Indicator (Beta)
+### Progress Indicator
 
 During long sessions, periodic updates show elapsed time:
 
