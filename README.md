@@ -575,7 +575,7 @@ Use `--notify-only` for notifications that don't need immediate AI response (e.g
 
 **Graceful Restart** - Send `SIGUSR2` to restart the bot with new code without losing connections.
 
-## Model & Agent Configuration
+## Model Configuration
 
 Set the AI model in your project's `opencode.json`:
 
@@ -594,13 +594,44 @@ Format: `provider/model-name`
 - `openai/gpt-4o` - GPT-4o
 - `google/gemini-2.5-pro` - Gemini 2.5 Pro
 
-Or use these Discord commands to change settings per channel/session:
+Or use `/model` in Discord to change the model per channel or session.
 
-- `/model` - Select a different AI model
-- `/agent` - Select a different agent (if you have multiple agents configured in your project)
-- `/login` - Authenticate with providers via OAuth or API key
+## OhMyOpenCode Integration
 
-When you switch agents in a session thread, the thread name is updated with the agent tag (e.g., `Fix login bug [hephaestus]`) so you can easily see which agent is active.
+Disunday officially supports and endorses [OhMyOpenCode](https://github.com/xhyrom/oh-my-opencode) - a powerful agent framework that extends OpenCode with specialized agents like Prometheus (planning), Oracle (architecture), Hephaestus (implementation), and more.
+
+### Agent Commands
+
+| Command | Description |
+| ------- | ----------- |
+| `/agent` | Select an agent from dropdown menu |
+| `/prometheus-agent` | Switch to Prometheus (planning agent) |
+| `/oracle-agent` | Switch to Oracle (architecture consultant) |
+| `/hephaestus-agent` | Switch to Hephaestus (implementation) |
+| `/<agent-name>-agent` | Quick switch to any configured agent |
+
+Quick agent commands are auto-generated from your project's agent configuration. Only agents with `mode: "primary"` or `mode: "all"` appear as commands.
+
+### Agent Features
+
+**Agent persistence** - Set a default agent per channel with `/agent`. All new sessions in that channel use that agent. Override per-session by running `/agent` inside a thread.
+
+**Agent tag in thread name** - When you switch agents in a session, the thread name updates with a tag:
+```
+Fix login bug → Fix login bug [hephaestus]
+```
+
+**Automatic model selection** - Each agent can have its own model configured. Priority order:
+1. Session model (set via `/model` in thread)
+2. Agent model (from agent config)
+3. Channel model (set via `/model` in channel)
+4. Project default
+
+### Setting Up Agents
+
+Agents are configured in your OpenCode project. See the [OhMyOpenCode documentation](https://github.com/xhyrom/oh-my-opencode) for setup instructions.
+
+Once configured, restart Disunday to register the quick agent commands (`/prometheus-agent`, etc.).
 
 ---
 
