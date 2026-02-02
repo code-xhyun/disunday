@@ -2,6 +2,7 @@ import type { ChatInputCommandInteraction, ThreadChannel } from 'discord.js'
 import {
   createScheduledMessage,
   getSchedulesByChannel,
+  getSchedulesByChannelIds,
   getScheduleById,
   cancelSchedule,
 } from '../database.js'
@@ -151,12 +152,28 @@ export async function handleScheduleCommand({
     }
 
     case 'list': {
+      const showAll = command.options.getBoolean('all') ?? false
       const channelId = command.channelId
-      const schedules = getSchedulesByChannel(channelId)
+      const guild = command.guild
+
+      let schedules: Awaited<ReturnType<typeof getSchedulesByChannel>>
+
+      if (showAll && guild) {
+        // Get all text channels in the guild that have disunday metadata
+        const channels = guild.channels.cache.filter((ch) => {
+          return ch.isTextBased() && 'topic' in ch && ch.topic?.includes('<disunday>')
+        })
+        const channelIds = channels.map((ch) => ch.id)
+        schedules = getSchedulesByChannelIds(channelIds)
+      } else {
+        schedules = getSchedulesByChannel(channelId)
+      }
 
       if (schedules.length === 0) {
         await command.reply({
-          content: '📭 No pending schedules in this channel',
+          content: showAll
+            ? '📭 No pending schedules in this server'
+            : '📭 No pending schedules in this channel',
           ephemeral: true,
         })
         return
@@ -165,11 +182,13 @@ export async function handleScheduleCommand({
       const lines = schedules.map((s) => {
         const time = formatScheduleTime(s.scheduled_at)
         const preview = s.prompt.slice(0, 40) + (s.prompt.length > 40 ? '...' : '')
-        return `**#${s.id}** ${time}\n└ ${preview}`
+        const channelMention = showAll ? `<#${s.channel_id}> ` : ''
+        return `**#${s.id}** ${channelMention}${time}\n└ ${preview}`
       })
 
+      const title = showAll ? '📋 **All Pending Schedules**' : '📋 **Pending Schedules**'
       await command.reply({
-        content: `📋 **Pending Schedules**\n\n${lines.join('\n\n')}`,
+        content: `${title}\n\n${lines.join('\n\n')}`,
         ephemeral: true,
       })
       return

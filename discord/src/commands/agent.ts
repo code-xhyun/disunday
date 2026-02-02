@@ -13,7 +13,7 @@ import {
 import crypto from 'node:crypto'
 import { getDatabase, setChannelAgent, setSessionAgent, clearSessionModel, runModelMigrations } from '../database.js'
 import { initializeOpencodeForDirectory } from '../opencode.js'
-import { resolveTextChannel, getDisundayMetadata } from '../discord-utils.js'
+import { resolveTextChannel, getDisundayMetadata, SILENT_MESSAGE_FLAGS } from '../discord-utils.js'
 import { createLogger, LogPrefix } from '../logger.js'
 import * as errore from 'errore'
 
@@ -283,7 +283,8 @@ export async function handleQuickAgentCommand({
   command: ChatInputCommandInteraction
   appId: string
 }): Promise<void> {
-  await command.deferReply({ ephemeral: true })
+  const isThread = command.channel?.isThread() ?? false
+  await command.deferReply({ ephemeral: !isThread })
 
   runModelMigrations()
 
@@ -326,6 +327,13 @@ export async function handleQuickAgentCommand({
     setAgentForContext({ context, agentName: matchingAgent.name })
 
     if (context.isThread && context.sessionId) {
+      const thread = command.channel as ThreadChannel
+      const currentName = thread.name
+      const nameWithoutAgent = currentName.replace(/\s*\[[^\]]+\]$/, '')
+      const newName = `${nameWithoutAgent} [${matchingAgent.name}]`
+      
+      await errore.tryAsync(() => thread.setName(newName))
+      
       await command.editReply({
         content: `Switched to **${matchingAgent.name}** agent for this session`,
       })

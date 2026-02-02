@@ -716,6 +716,12 @@ async function registerCommands({
         return sub
           .setName('list')
           .setDescription('List pending schedules in this channel')
+          .addBooleanOption((opt) => {
+            return opt
+              .setName('all')
+              .setDescription('List all pending schedules in the server')
+              .setRequired(false)
+          })
       })
       .addSubcommand((sub) => {
         return sub

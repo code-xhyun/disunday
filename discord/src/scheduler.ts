@@ -6,6 +6,7 @@ import {
   updateScheduleStatus,
   runScheduleMigrations,
   getChannelDirectory,
+  getBotSettings,
 } from './database.js'
 import { handleOpencodeSession } from './session-handler.js'
 import { sendThreadMessage, SILENT_MESSAGE_FLAGS } from './discord-utils.js'
@@ -113,9 +114,51 @@ async function processSchedules(client: Client): Promise<void> {
     if (result instanceof Error) {
       schedulerLogger.error(`[SCHEDULER] Failed schedule #${schedule.id}:`, result)
       updateScheduleStatus(schedule.id, 'failed', result.message)
+      await sendScheduleNotification(client, schedule, 'failed', result.message)
     } else {
       schedulerLogger.log(`[SCHEDULER] Completed schedule #${schedule.id}`)
       updateScheduleStatus(schedule.id, 'completed')
+      await sendScheduleNotification(client, schedule, 'completed')
     }
   }
+}
+
+async function sendScheduleNotification(
+  client: Client,
+  schedule: { id: number; channel_id: string; prompt: string; created_by: string },
+  status: 'completed' | 'failed',
+  errorMessage?: string,
+): Promise<void> {
+  const appId = client.application?.id
+  if (!appId) {
+    return
+  }
+
+  const settings = getBotSettings(appId)
+  if (!settings.hub_channel_id) {
+    return
+  }
+
+  const hubChannel = await errore.tryAsync(() => {
+    return client.channels.fetch(settings.hub_channel_id!)
+  })
+
+  if (hubChannel instanceof Error || !hubChannel?.isTextBased() || !('send' in hubChannel)) {
+    return
+  }
+
+  const promptPreview = schedule.prompt.slice(0, 50) + (schedule.prompt.length > 50 ? '...' : '')
+  const emoji = status === 'completed' ? '✅' : '❌'
+  const statusText = status === 'completed' ? 'completed' : 'failed'
+
+  const content = (() => {
+    if (status === 'failed') {
+      return `${emoji} Schedule **#${schedule.id}** ${statusText}\n📍 <#${schedule.channel_id}>\n💬 ${promptPreview}\n⚠️ ${errorMessage}`
+    }
+    return `${emoji} Schedule **#${schedule.id}** ${statusText}\n📍 <#${schedule.channel_id}>\n💬 ${promptPreview}`
+  })()
+
+  try {
+    await hubChannel.send({ content, flags: SILENT_MESSAGE_FLAGS })
+  } catch {}
 }

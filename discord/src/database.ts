@@ -820,6 +820,23 @@ export function getSchedulesByChannel(channelId: string): ScheduledMessage[] {
     .all(channelId, channelId) as ScheduledMessage[]
 }
 
+export function getSchedulesByChannelIds(
+  channelIds: string[],
+): ScheduledMessage[] {
+  if (channelIds.length === 0) {
+    return []
+  }
+  const db = getDatabase()
+  const placeholders = channelIds.map(() => '?').join(', ')
+  return db
+    .prepare(
+      `SELECT * FROM scheduled_messages 
+       WHERE channel_id IN (${placeholders}) AND status = 'pending'
+       ORDER BY scheduled_at ASC`,
+    )
+    .all(...channelIds) as ScheduledMessage[]
+}
+
 export function getScheduleById(id: number): ScheduledMessage | undefined {
   const db = getDatabase()
   return db
