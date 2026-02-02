@@ -73,7 +73,7 @@ const cliLogger = createLogger(LogPrefix.CLI)
 
 // Strip bracketed paste escape sequences from terminal input.
 // iTerm2 and other terminals wrap pasted content with \x1b[200~ and \x1b[201~
-// which can cause validation to fail on macOS. See: https://github.com/remorses/kimaki/issues/18
+
 function stripBracketedPaste(value: string | undefined): string {
   if (!value) {
     return ''
@@ -672,7 +672,9 @@ async function registerCommands({
       .addSubcommand((sub) => {
         return sub
           .setName('hub-channel')
-          .setDescription('Set the central notification channel for session completions')
+          .setDescription(
+            'Set the central notification channel for session completions',
+          )
           .addChannelOption((opt) => {
             return opt
               .setName('channel')
@@ -687,9 +689,7 @@ async function registerCommands({
           })
       })
       .addSubcommand((sub) => {
-        return sub
-          .setName('view')
-          .setDescription('View current bot settings')
+        return sub.setName('view').setDescription('View current bot settings')
       })
       .toJSON(),
     new SlashCommandBuilder()
@@ -1230,7 +1230,7 @@ async function run({
         // Process all guilds in parallel for faster startup
         const guildResults = await Promise.all(
           guilds.map(async (guild) => {
-            // Create Kimaki role if it doesn't exist, or fix its position (fire-and-forget)
+            // Create Disunday role if it doesn't exist, or fix its position (fire-and-forget)
             guild.roles
               .fetch()
               .then(async (roles) => {
@@ -1261,14 +1261,15 @@ async function run({
               })
               .catch((error) => {
                 cliLogger.warn(
-                  `Could not create Kimaki role in ${guild.name}: ${error instanceof Error ? error.message : String(error)}`,
+                  `Could not create Disunday role in ${guild.name}: ${error instanceof Error ? error.message : String(error)}`,
                 )
               })
 
             const channels = await getChannelsWithDescriptions(guild)
             const disundayChans = channels.filter(
               (ch) =>
-                ch.disundayDirectory && (!ch.disundayApp || ch.disundayApp === appId),
+                ch.disundayDirectory &&
+                (!ch.disundayApp || ch.disundayApp === appId),
             )
 
             return { guild, channels: disundayChans }
@@ -1320,7 +1321,7 @@ async function run({
       )
       .join('\n')
 
-    note(channelList, 'Existing Kimaki Channels')
+    note(channelList, 'Existing Disunday Channels')
   }
 
   // Quick start: if setup is already done, start bot immediately and background the rest

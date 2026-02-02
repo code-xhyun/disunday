@@ -1,6 +1,6 @@
 // XML/HTML tag content extractor.
 // Parses XML-like tags from strings (e.g., channel topics) to extract
-// Kimaki configuration like directory paths and app IDs.
+// Disunday configuration like directory paths and app IDs.
 
 import { DomHandler, Parser, ElementType } from 'htmlparser2'
 import type { ChildNode, Element, Text } from 'domhandler'
@@ -40,9 +40,15 @@ export function extractTagsArrays<T extends string>({
                 // Extract content using original string positions
                 const extractContent = (): string => {
                   // Use element's own indices but exclude the tags
-                  if (element.startIndex !== null && element.endIndex !== null) {
+                  if (
+                    element.startIndex !== null &&
+                    element.endIndex !== null
+                  ) {
                     // Extract the full element including tags
-                    const fullElement = xml.substring(element.startIndex, element.endIndex + 1)
+                    const fullElement = xml.substring(
+                      element.startIndex,
+                      element.endIndex + 1,
+                    )
                     // Find where content starts (after opening tag)
                     const contentStart = fullElement.indexOf('>') + 1
                     // Find where content ends (before this element's closing tag)
@@ -73,7 +79,10 @@ export function extractTagsArrays<T extends string>({
                 if (element.children) {
                   findTags(element.children, currentPath)
                 }
-              } else if (node.type === ElementType.Text && node.parent?.type === ElementType.Root) {
+              } else if (
+                node.type === ElementType.Text &&
+                node.parent?.type === ElementType.Root
+              ) {
                 const textNode = node as Text
                 if (textNode.data.trim()) {
                   // console.log('node.parent',node.parent)
