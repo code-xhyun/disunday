@@ -15,7 +15,7 @@ Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) 
 ## Quick Start
 
 ```bash
-npx disunday
+npx disunday@latest
 ```
 
 The CLI will guide you through:
@@ -29,7 +29,7 @@ The CLI will guide you through:
 Copy this prompt to your AI coding agent (Claude Code, Cursor, OpenCode, etc.):
 
 ```
-Set up Disunday Discord bot for me by running `npx disunday`.
+Set up Disunday Discord bot for me by running `npx disunday@latest`.
 
 The CLI will guide me through Discord bot setup, but help me with:
 - Creating a Discord bot at https://discord.com/developers/applications
