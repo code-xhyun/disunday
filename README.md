@@ -604,6 +604,10 @@ When you switch agents in a session thread, the thread name is updated with the 
 
 ---
 
+## Sponsors
+
+<a href="https://redimo.dev"><img src="https://redimo.dev/logo.png" alt="Redimo" height="40"></a>
+
 ## Credits
 
 Originally forked from [kimaki](https://github.com/remorses/kimaki)
