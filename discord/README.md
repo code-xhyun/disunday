@@ -598,7 +598,7 @@ Or use `/model` in Discord to change the model per channel or session.
 
 ## OhMyOpenCode Integration
 
-Disunday officially supports and endorses [OhMyOpenCode](https://github.com/xhyrom/oh-my-opencode) - a powerful agent framework that extends OpenCode with specialized agents like Prometheus (planning), Oracle (architecture), Hephaestus (implementation), and more.
+Disunday officially supports and endorses [OhMyOpenCode](https://github.com/code-yeongyu/oh-my-opencode) - a powerful agent framework that extends OpenCode with specialized agents like Prometheus (planning), Oracle (architecture), Hephaestus (implementation), and more.
 
 ### Agent Commands
 
@@ -629,7 +629,7 @@ Fix login bug → Fix login bug [hephaestus]
 
 ### Setting Up Agents
 
-Agents are configured in your OpenCode project. See the [OhMyOpenCode documentation](https://github.com/xhyrom/oh-my-opencode) for setup instructions.
+Agents are configured in your OpenCode project. See the [OhMyOpenCode documentation](https://github.com/code-yeongyu/oh-my-opencode) for setup instructions.
 
 Once configured, restart Disunday to register the quick agent commands (`/prometheus-agent`, etc.).
 
