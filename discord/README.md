@@ -3,6 +3,9 @@
     <img src="https://raw.githubusercontent.com/code-xhyun/disunday/main/assets/logo.png" alt="disunday" width="480" />
     <br/>
     <br/>
+    <a href="https://www.npmjs.com/package/disunday"><img src="https://img.shields.io/npm/v/disunday.svg" alt="npm version"></a>
+    <a href="https://www.npmjs.com/package/disunday"><img src="https://img.shields.io/npm/dm/disunday.svg" alt="npm downloads"></a>
+    <a href="https://github.com/code-xhyun/disunday/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/disunday.svg" alt="license"></a>
 </div>
 
 Disunday is a Discord bot that lets you control [OpenCode](https://opencode.ai) coding sessions from Discord. Send a message in a Discord channel → an AI agent edits code on your machine.
@@ -305,6 +308,7 @@ Schedule prompts to run at a specific time:
 /schedule add prompt:"Run tests and deploy" time:3:00pm
 /schedule add prompt:"Daily standup summary" time:30m
 /schedule list
+/schedule list all:true
 /schedule cancel id:5
 ```
 
@@ -312,7 +316,7 @@ Schedule prompts to run at a specific time:
 - Relative: `30m`, `2h`, `1d` (minutes, hours, days from now)
 - Absolute: `3:00pm`, `14:30` (runs today, or tomorrow if time has passed)
 
-Schedules persist across bot restarts. Use `/schedule list` to see pending schedules and `/schedule cancel` to remove them.
+Schedules persist across bot restarts. Use `/schedule list` to see pending schedules in the current channel, or `/schedule list all:true` to see all schedules across the server. When a hub channel is configured, schedule completions and failures are also reported there.
 
 ### Run Commands
 
@@ -595,6 +599,8 @@ Or use these Discord commands to change settings per channel/session:
 - `/model` - Select a different AI model
 - `/agent` - Select a different agent (if you have multiple agents configured in your project)
 - `/login` - Authenticate with providers via OAuth or API key
+
+When you switch agents in a session thread, the thread name is updated with the agent tag (e.g., `Fix login bug [hephaestus]`) so you can easily see which agent is active.
 
 ---
 
