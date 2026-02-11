@@ -448,23 +448,21 @@ Just send a message in any channel linked to a project. Disunday handles the res
 
 ### CLI Commands
 
-All commands run from the `discord` directory:
-
 ```bash
 # Start the bot (interactive setup on first run)
-pnpm dev
+npx disunday@latest
 
 # Upload files to a Discord thread
-pnpm tsx src/cli.ts upload-to-discord --session <session-id> <file1> [file2...]
+npx disunday upload-to-discord --session <session-id> <file1> [file2...]
 
 # Start a session programmatically (useful for CI/automation)
-pnpm tsx src/cli.ts send --channel <channel-id> --prompt "your prompt"
+npx disunday send --channel <channel-id> --prompt "your prompt"
 
 # Send notification without starting AI session (reply to start session later)
-pnpm tsx src/cli.ts send --channel <channel-id> --prompt "User cancelled subscription" --notify-only
+npx disunday send --channel <channel-id> --prompt "User cancelled subscription" --notify-only
 
 # Create Discord channels for a project directory (without starting a session)
-pnpm tsx src/cli.ts add-project [directory]
+npx disunday add-project [directory]
 ```
 
 ## Add Project Channels
@@ -473,16 +471,16 @@ Create Discord channels for a project directory without starting a session. Usef
 
 ```bash
 # Add current directory as a project
-pnpm tsx src/cli.ts add-project
+npx disunday add-project
 
 # Add a specific directory
-pnpm tsx src/cli.ts add-project /path/to/project
+npx disunday add-project /path/to/project
 
 # Specify guild when bot is in multiple servers
-pnpm tsx src/cli.ts add-project ./myproject --guild 123456789
+npx disunday add-project ./myproject --guild 123456789
 
 # In CI with env var for bot token
-DISUNDAY_BOT_TOKEN=xxx pnpm tsx src/cli.ts add-project --app-id 987654321
+DISUNDAY_BOT_TOKEN=xxx npx disunday add-project --app-id 987654321
 ```
 
 ### Options
@@ -506,7 +504,7 @@ You can start Disunday sessions from CI pipelines, cron jobs, or any automation.
 ### CLI Options
 
 ```bash
-pnpm tsx src/cli.ts send \
+npx disunday send \
   --channel <channel-id>  # Required: Discord channel ID
   --prompt <prompt>       # Required: Message content
   --name <name>           # Optional: Thread name (defaults to prompt preview)
@@ -530,15 +528,11 @@ jobs:
   investigate:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone Disunday
-        run: git clone https://github.com/code-xhyun/disunday.git
-      - name: Install dependencies
-        run: cd disunday && pnpm install
       - name: Start Disunday Session
         env:
           DISUNDAY_BOT_TOKEN: ${{ secrets.DISUNDAY_BOT_TOKEN }}
         run: |
-          cd disunday/discord && pnpm tsx src/cli.ts send \
+          npx disunday send \
             --channel "1234567890123456789" \
             --prompt "Investigate issue ${{ github.event.issue.html_url }} using gh cli. Try fixing it in a new worktree ./${{ github.event.issue.number }}" \
             --name "Issue #${{ github.event.issue.number }}"
