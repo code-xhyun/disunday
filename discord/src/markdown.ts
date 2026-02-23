@@ -359,7 +359,7 @@ export function getLastSessionId({
 }): Promise<UnexpectedError | (string | null)> {
   return errore.tryAsync({
     try: async () => {
-      const sessionsResponse = await client.session.list()
+      const sessionsResponse = await client.session.list({ query: { limit: 1000 } as { directory?: string } })
       const sessions = sessionsResponse.data || []
 
       // Sessions are sorted by time, get the most recent one that isn't the current

@@ -191,7 +191,7 @@ export async function getTools({
       inputSchema: z.object({}),
       execute: async () => {
         toolsLogger.log(`Listing opencode sessions`)
-        const sessions = await getClient().session.list()
+        const sessions = await getClient().session.list({ query: { limit: 1000 } as { directory?: string } })
 
         if (!sessions.data) {
           return { success: false, error: 'No sessions found' }

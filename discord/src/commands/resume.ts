@@ -36,7 +36,7 @@ export async function refreshSessionCache(
 
   try {
     const response = await getClient().session.list({
-      query: { directory: projectDirectory },
+      query: { directory: projectDirectory, limit: 1000 } as { directory?: string },
     })
     const sessions: SessionInfo[] = (response.data || []).map((s) => ({
       id: s.id,
